@@ -11,6 +11,7 @@ import {
   CheckCircle2,
   AlertTriangle,
   Recycle,
+  BarChart3,
 } from 'lucide-react';
 import Link from 'next/link';
 
@@ -33,7 +34,16 @@ export default function DashboardPage() {
   if (!user) return null;
 
   const myReports = reports.filter((r) => r.userId === user.id);
+  const allReports = reports;
   const badgeMeta = BADGE_META[user.badge] ?? BADGE_META.none;
+
+  // Category distribution for mini analytics
+  const categoryCount: Record<string, number> = {};
+  allReports.forEach((r) => {
+    const cat = (r.wasteCategory || 'mixed').replace('_', ' ');
+    categoryCount[cat] = (categoryCount[cat] || 0) + 1;
+  });
+  const maxCatCount = Math.max(...Object.values(categoryCount), 1);
 
   return (
     <Layout>
@@ -44,7 +54,7 @@ export default function DashboardPage() {
           <p className="mt-2 text-primary-100">
             {user.trainingCompleted
               ? 'Your training is complete. Keep reporting illegal dumps to earn badges!'
-              : 'Start by completing your waste‑management training to unlock all features.'}
+              : 'Start by completing your waste-management training to unlock all features.'}
           </p>
         </div>
 
@@ -101,7 +111,9 @@ export default function DashboardPage() {
               <GraduationCap size={24} />
             </div>
             <div>
-              <p className="font-semibold">{user.trainingCompleted ? 'Review Training' : 'Start Training'}</p>
+              <p className="font-semibold">
+                {user.trainingCompleted ? 'Review Training' : 'Start Training'}
+              </p>
               <p className="text-sm text-gray-500">Learn waste segregation</p>
             </div>
           </Link>
@@ -114,7 +126,7 @@ export default function DashboardPage() {
             </div>
             <div>
               <p className="font-semibold">Report a Dump</p>
-              <p className="text-sm text-gray-500">Snap a geo‑tagged photo</p>
+              <p className="text-sm text-gray-500">Snap a geo-tagged photo</p>
             </div>
           </Link>
           <Link
@@ -131,6 +143,33 @@ export default function DashboardPage() {
           </Link>
         </div>
 
+        {/* ── Mini Analytics ── */}
+        {allReports.length > 0 && (
+          <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6">
+            <div className="flex items-center gap-2 mb-4">
+              <BarChart3 size={18} className="text-primary-600" />
+              <h2 className="text-lg font-semibold">Waste Category Distribution</h2>
+              <span className="text-xs text-gray-400 ml-auto">{allReports.length} total reports</span>
+            </div>
+            <div className="space-y-3">
+              {Object.entries(categoryCount)
+                .sort((a, b) => b[1] - a[1])
+                .map(([cat, count]) => (
+                  <div key={cat} className="flex items-center gap-3">
+                    <span className="text-xs font-medium w-28 text-gray-600 capitalize">{cat}</span>
+                    <div className="flex-1 bg-gray-100 rounded-full h-4 overflow-hidden">
+                      <div
+                        className="bg-primary-500 h-4 rounded-full transition-all"
+                        style={{ width: `${(count / maxCatCount) * 100}%` }}
+                      />
+                    </div>
+                    <span className="text-xs font-bold text-gray-700 w-8 text-right">{count}</span>
+                  </div>
+                ))}
+            </div>
+          </div>
+        )}
+
         {/* ── Recent reports ── */}
         <div className="bg-white rounded-2xl border border-gray-100 shadow-sm">
           <div className="px-6 py-4 border-b border-gray-100">
@@ -139,7 +178,13 @@ export default function DashboardPage() {
           {myReports.length === 0 ? (
             <div className="px-6 py-12 text-center text-gray-400">
               <Camera size={32} className="mx-auto mb-2 opacity-50" />
-              <p>No reports yet. Go report an illegal dump!</p>
+              <p className="mb-3">No reports yet.</p>
+              <Link
+                href="/report"
+                className="inline-flex items-center gap-1.5 text-sm text-primary-600 font-semibold hover:underline"
+              >
+                <Camera size={14} /> Report your first illegal dump
+              </Link>
             </div>
           ) : (
             <ul className="divide-y divide-gray-50">
@@ -151,14 +196,17 @@ export default function DashboardPage() {
                   <li key={r.id} className="px-6 py-4 flex items-center gap-4">
                     <img
                       src={r.photoDataUrl}
-                      alt="report"
+                      alt={`Report: ${r.description.slice(0, 30)}`}
                       className="w-14 h-14 rounded-xl object-cover"
+                      onError={(e) => {
+                        (e.target as HTMLImageElement).style.display = 'none';
+                      }}
                     />
                     <div className="flex-1 min-w-0">
                       <p className="text-sm font-medium truncate">{r.description}</p>
                       <p className="text-xs text-gray-400 flex items-center gap-1 mt-0.5">
                         <Clock size={12} />
-                        {new Date(r.createdAt).toLocaleString()}
+                        {new Date(r.createdAt).toLocaleDateString()}
                       </p>
                     </div>
                     <span
@@ -170,8 +218,12 @@ export default function DashboardPage() {
                           : 'bg-amber-100 text-amber-700'
                       }`}
                     >
-                      {r.status === 'resolved' && <CheckCircle2 size={12} className="inline mr-1" />}
-                      {r.status === 'pending' && <AlertTriangle size={12} className="inline mr-1" />}
+                      {r.status === 'resolved' && (
+                        <CheckCircle2 size={12} className="inline mr-1" />
+                      )}
+                      {r.status === 'pending' && (
+                        <AlertTriangle size={12} className="inline mr-1" />
+                      )}
                       {r.status.charAt(0).toUpperCase() + r.status.slice(1)}
                     </span>
                   </li>

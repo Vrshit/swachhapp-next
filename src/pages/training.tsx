@@ -10,6 +10,8 @@ import {
   ArrowRight,
   Trophy,
   RotateCcw,
+  Download,
+  Info,
 } from 'lucide-react';
 
 export default function TrainingPage() {
@@ -51,17 +53,98 @@ export default function TrainingPage() {
       setSelected(null);
       setSubmitted(false);
     } else {
-      // Calculate score
+      // Calculate final score using committed answers array
+      const finalAnswers = [...answers];
+      finalAnswers[currentQ] = selected;
       let s = 0;
-      answers.forEach((a, i) => {
-        // use the latest answer for the last question
-        const ans = i === currentQ ? selected : a;
-        if (ans === TRAINING_QUESTIONS[i].correctAnswer) s++;
+      finalAnswers.forEach((a, i) => {
+        if (a === TRAINING_QUESTIONS[i].correctAnswer) s++;
       });
       setScore(s);
-      completeTraining(s);
+      try {
+        completeTraining(s);
+      } catch (e) {
+        console.error('Training save error:', e);
+      }
       setShowResult(true);
     }
+  };
+
+  const handleDownloadCertificate = () => {
+    const canvas = document.createElement('canvas');
+    canvas.width = 800;
+    canvas.height = 500;
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return;
+
+    // Background
+    ctx.fillStyle = '#f0fdf4';
+    ctx.fillRect(0, 0, 800, 500);
+
+    // Border
+    ctx.strokeStyle = '#16a34a';
+    ctx.lineWidth = 4;
+    ctx.strokeRect(20, 20, 760, 460);
+
+    // Inner border
+    ctx.strokeStyle = '#86efac';
+    ctx.lineWidth = 1;
+    ctx.strokeRect(30, 30, 740, 440);
+
+    // Title
+    ctx.fillStyle = '#14532d';
+    ctx.font = 'bold 32px Inter, Arial, sans-serif';
+    ctx.textAlign = 'center';
+    ctx.fillText('Certificate of Completion', 400, 80);
+
+    // Subtitle
+    ctx.fillStyle = '#166534';
+    ctx.font = '18px Inter, Arial, sans-serif';
+    ctx.fillText('Waste Management Awareness Training', 400, 115);
+
+    // Divider
+    ctx.strokeStyle = '#22c55e';
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.moveTo(200, 135);
+    ctx.lineTo(600, 135);
+    ctx.stroke();
+
+    // Body
+    ctx.fillStyle = '#374151';
+    ctx.font = '16px Inter, Arial, sans-serif';
+    ctx.fillText('This is to certify that', 400, 180);
+
+    // Name
+    ctx.fillStyle = '#14532d';
+    ctx.font = 'bold 28px Inter, Arial, sans-serif';
+    ctx.fillText(user.name, 400, 220);
+
+    // Details
+    ctx.fillStyle = '#374151';
+    ctx.font = '16px Inter, Arial, sans-serif';
+    ctx.fillText('has successfully completed the SwachhApp', 400, 265);
+    ctx.fillText('Citizen Waste Management Training Program', 400, 290);
+    ctx.fillText(`with a score of ${score} out of ${TRAINING_QUESTIONS.length}`, 400, 325);
+
+    // Date
+    ctx.font = '14px Inter, Arial, sans-serif';
+    ctx.fillStyle = '#6b7280';
+    ctx.fillText(`Date: ${new Date().toLocaleDateString('en-IN', { year: 'numeric', month: 'long', day: 'numeric' })}`, 400, 370);
+
+    // Footer
+    ctx.fillStyle = '#16a34a';
+    ctx.font = 'bold 14px Inter, Arial, sans-serif';
+    ctx.fillText('♻ SwachhApp — Smart India Hackathon 2026', 400, 430);
+    ctx.font = '11px Inter, Arial, sans-serif';
+    ctx.fillStyle = '#9ca3af';
+    ctx.fillText(`Certificate ID: SWA-${user.id.slice(0, 8).toUpperCase()}`, 400, 455);
+
+    // Download
+    const link = document.createElement('a');
+    link.download = `SwachhApp_Certificate_${user.name.replace(/\\s/g, '_')}.png`;
+    link.href = canvas.toDataURL('image/png');
+    link.click();
   };
 
   if (showResult) {
@@ -69,34 +152,83 @@ export default function TrainingPage() {
     return (
       <Layout>
         <div className="max-w-xl mx-auto px-4 py-16 text-center">
-          <div className={`w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-6 ${
-            passed ? 'bg-green-100 text-green-600' : 'bg-amber-100 text-amber-600'
-          }`}>
+          <div
+            className={`w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-6 ${
+              passed ? 'bg-green-100 text-green-600' : 'bg-amber-100 text-amber-600'
+            }`}
+          >
             {passed ? <Trophy size={40} /> : <RotateCcw size={40} />}
           </div>
           <h1 className="text-3xl font-bold mb-2">
             {passed ? 'Congratulations! 🎉' : 'Keep Trying!'}
           </h1>
           <p className="text-gray-600 mb-4">
-            You scored <span className="font-bold text-lg">{score}</span> out of{' '}
+            You scored{' '}
+            <span className="font-bold text-lg">{score}</span> out of{' '}
             <span className="font-bold text-lg">{TRAINING_QUESTIONS.length}</span>
           </p>
           {passed ? (
             <p className="text-green-700 bg-green-50 rounded-xl px-4 py-3 mb-6">
-              ✅ Training completed! You're now a certified waste‑management aware citizen.
+              ✅ Training completed! You're now a certified waste-management aware citizen.
             </p>
           ) : (
             <p className="text-amber-700 bg-amber-50 rounded-xl px-4 py-3 mb-6">
               You need at least 3/5 to pass. Review the material and try again.
             </p>
           )}
-          <div className="flex gap-4 justify-center">
+
+          {/* Answer Review */}
+          <div className="text-left bg-white rounded-2xl border border-gray-100 p-5 mb-6">
+            <h3 className="font-semibold mb-3">📝 Answer Review</h3>
+            <div className="space-y-3">
+              {TRAINING_QUESTIONS.map((tq, i) => {
+                const finalAnswers2 = [...answers];
+                finalAnswers2[TRAINING_QUESTIONS.length - 1] = selected;
+                const userAns = finalAnswers2[i];
+                const correct = userAns === tq.correctAnswer;
+                return (
+                  <div
+                    key={tq.id}
+                    className={`p-3 rounded-xl text-sm ${
+                      correct ? 'bg-green-50' : 'bg-red-50'
+                    }`}
+                  >
+                    <div className="flex items-start gap-2">
+                      {correct ? (
+                        <CheckCircle2 size={16} className="text-green-600 mt-0.5 flex-shrink-0" />
+                      ) : (
+                        <XCircle size={16} className="text-red-600 mt-0.5 flex-shrink-0" />
+                      )}
+                      <div>
+                        <p className="font-medium">{tq.question}</p>
+                        {!correct && (
+                          <p className="text-red-600 text-xs mt-1">
+                            Your answer: {tq.options[userAns ?? 0]} → Correct: {tq.options[tq.correctAnswer]}
+                          </p>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+
+          <div className="flex flex-wrap gap-3 justify-center">
             <button
               onClick={() => router.push('/dashboard')}
               className="bg-primary-600 hover:bg-primary-700 text-white font-semibold px-6 py-3 rounded-xl transition"
             >
               Go to Dashboard
             </button>
+            {passed && (
+              <button
+                onClick={handleDownloadCertificate}
+                className="flex items-center gap-2 border-2 border-primary-300 text-primary-700 font-semibold px-6 py-3 rounded-xl hover:bg-primary-50 transition"
+              >
+                <Download size={16} /> Download Certificate
+              </button>
+            )}
             {!passed && (
               <button
                 onClick={() => {
@@ -104,6 +236,7 @@ export default function TrainingPage() {
                   setSelected(null);
                   setSubmitted(false);
                   setAnswers(new Array(TRAINING_QUESTIONS.length).fill(null));
+                  setScore(0);
                   setShowResult(false);
                 }}
                 className="border-2 border-primary-300 text-primary-700 font-semibold px-6 py-3 rounded-xl hover:bg-primary-50 transition"
@@ -134,7 +267,7 @@ export default function TrainingPage() {
         </div>
 
         {/* ── Progress bar ── */}
-        <div className="w-full bg-gray-200 rounded-full h-2">
+        <div className="w-full bg-gray-200 rounded-full h-2" role="progressbar" aria-valuenow={(currentQ + 1) / TRAINING_QUESTIONS.length * 100} aria-valuemin={0} aria-valuemax={100}>
           <div
             className="bg-primary-500 h-2 rounded-full transition-all"
             style={{ width: `${((currentQ + 1) / TRAINING_QUESTIONS.length) * 100}%` }}
@@ -181,6 +314,19 @@ export default function TrainingPage() {
               );
             })}
           </div>
+
+          {/* ── Explanation (shown after submit) ── */}
+          {submitted && (
+            <div className="mt-4 p-4 bg-blue-50 border border-blue-200 rounded-xl">
+              <div className="flex items-start gap-2">
+                <Info size={18} className="text-blue-600 mt-0.5 flex-shrink-0" />
+                <div>
+                  <p className="text-sm font-semibold text-blue-800">Explanation</p>
+                  <p className="text-sm text-blue-700 mt-1">{q.explanation}</p>
+                </div>
+              </div>
+            </div>
+          )}
         </div>
 
         {/* ── Actions ── */}
