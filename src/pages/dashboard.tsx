@@ -12,14 +12,46 @@ import {
   AlertTriangle,
   Recycle,
   BarChart3,
+  Sparkles,
+  ArrowRight,
+  ShieldCheck,
+  Zap,
+  MapPin,
 } from 'lucide-react';
 import Link from 'next/link';
 
-const BADGE_META: Record<string, { label: string; color: string; bg: string }> = {
-  none: { label: 'No Badge Yet', color: 'text-gray-400', bg: 'bg-gray-100' },
-  reporter: { label: '🏅 Reporter', color: 'text-blue-700', bg: 'bg-blue-50' },
-  champion: { label: '🏆 Champion', color: 'text-amber-700', bg: 'bg-amber-50' },
-  hero: { label: '🌟 Hero', color: 'text-purple-700', bg: 'bg-purple-50' },
+const BADGE_META: Record<
+  string,
+  { label: string; color: string; bg: string; border: string; desc: string }
+> = {
+  none: {
+    label: 'Citizen Initiate',
+    color: 'text-gray-600',
+    bg: 'bg-gray-100',
+    border: 'border-gray-200',
+    desc: 'Complete training to unlock Reporter badge',
+  },
+  reporter: {
+    label: '🏅 Active Reporter',
+    color: 'text-blue-800',
+    bg: 'bg-blue-50',
+    border: 'border-blue-200',
+    desc: 'Level 1: Verified dump reporting active',
+  },
+  champion: {
+    label: '🏆 Green Champion',
+    color: 'text-amber-800',
+    bg: 'bg-amber-50',
+    border: 'border-amber-200',
+    desc: 'Level 2: 5+ verified reports filed',
+  },
+  hero: {
+    label: '🌟 Swachh Bharat Hero',
+    color: 'text-emerald-900',
+    bg: 'bg-emerald-100',
+    border: 'border-emerald-300',
+    desc: 'Top Tier: 10+ verified municipal cleanups',
+  },
 };
 
 export default function DashboardPage() {
@@ -37,7 +69,6 @@ export default function DashboardPage() {
   const allReports = reports;
   const badgeMeta = BADGE_META[user.badge] ?? BADGE_META.none;
 
-  // Category distribution for mini analytics
   const categoryCount: Record<string, number> = {};
   allReports.forEach((r) => {
     const cat = (r.wasteCategory || 'mixed').replace('_', ' ');
@@ -47,191 +78,280 @@ export default function DashboardPage() {
 
   return (
     <Layout>
-      <div className="max-w-6xl mx-auto px-4 py-8 space-y-8">
-        {/* ── Welcome banner ── */}
-        <div className="bg-gradient-to-r from-primary-600 to-primary-800 rounded-2xl p-6 md:p-8 text-white">
-          <h1 className="text-2xl md:text-3xl font-bold">Welcome back, {user.name}! 👋</h1>
-          <p className="mt-2 text-primary-100">
-            {user.trainingCompleted
-              ? 'Your training is complete. Keep reporting illegal dumps to earn badges!'
-              : 'Start by completing your waste-management training to unlock all features.'}
-          </p>
-        </div>
-
-        {/* ── Stats cards ── */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-          {[
-            {
-              label: 'Training',
-              value: user.trainingCompleted ? 'Completed' : 'Pending',
-              icon: GraduationCap,
-              color: user.trainingCompleted ? 'text-green-600' : 'text-amber-600',
-              bg: user.trainingCompleted ? 'bg-green-50' : 'bg-amber-50',
-            },
-            {
-              label: 'Training Score',
-              value: user.trainingCompleted ? `${user.trainingScore}/5` : '—',
-              icon: TrendingUp,
-              color: 'text-blue-600',
-              bg: 'bg-blue-50',
-            },
-            {
-              label: 'My Reports',
-              value: String(myReports.length),
-              icon: Camera,
-              color: 'text-indigo-600',
-              bg: 'bg-indigo-50',
-            },
-            {
-              label: 'Badge',
-              value: badgeMeta.label,
-              icon: Award,
-              color: badgeMeta.color,
-              bg: badgeMeta.bg,
-            },
-          ].map((card) => (
-            <div
-              key={card.label}
-              className={`${card.bg} rounded-2xl p-5 flex flex-col items-start gap-2`}
-            >
-              <card.icon size={22} className={card.color} />
-              <p className="text-xs text-gray-500 font-medium">{card.label}</p>
-              <p className={`text-lg font-bold ${card.color}`}>{card.value}</p>
+      <div className="max-w-6xl mx-auto space-y-8">
+        {/* ── 3D Welcome Spatial Banner ── */}
+        <div className="clay-card-3d p-8 sm:p-10 bg-gradient-to-br from-emerald-800 via-emerald-900 to-green-950 text-white relative overflow-hidden">
+          <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-6">
+            <div className="space-y-2 max-w-2xl">
+              <div className="inline-flex items-center gap-2 text-xs font-black uppercase tracking-widest text-emerald-200 bg-white/10 px-3 py-1 rounded-full border border-white/10">
+                <Sparkles size={13} />
+                <span>Civic Impact Portal</span>
+              </div>
+              <h1 className="text-3xl sm:text-4xl font-black tracking-tight text-white">
+                Welcome back, {user.name}! 👋
+              </h1>
+              <p className="text-emerald-100 text-sm sm:text-base leading-relaxed">
+                {user.trainingCompleted
+                  ? 'Your citizen certification is active. Continue reporting illegal blackspots to ascend to Swachh Bharat Hero tier.'
+                  : 'Start by completing the 5-minute training module to unlock official civic badges and reporting privileges.'}
+              </p>
             </div>
-          ))}
+
+            <div className="flex flex-col sm:flex-row gap-3">
+              {!user.trainingCompleted ? (
+                <Link
+                  href="/training"
+                  className="clay-btn-green text-white font-extrabold px-6 py-3.5 text-xs sm:text-sm flex items-center justify-center gap-2 shine-sweep-effect"
+                >
+                  <GraduationCap size={18} />
+                  <span>Complete Training</span>
+                </Link>
+              ) : (
+                <Link
+                  href="/report"
+                  className="clay-btn-green text-white font-extrabold px-6 py-3.5 text-xs sm:text-sm flex items-center justify-center gap-2 shine-sweep-effect"
+                >
+                  <Camera size={18} />
+                  <span>Report Illegal Dump</span>
+                </Link>
+              )}
+            </div>
+          </div>
+
+          <div className="absolute -right-10 -bottom-10 w-64 h-64 bg-emerald-400/20 rounded-full blur-3xl pointer-events-none" />
         </div>
 
-        {/* ── Quick actions ── */}
-        <div className="grid md:grid-cols-3 gap-4">
+        {/* ── 4 Extruded 3D Metric Tiles ── */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
+          {/* Card 1: Training Status */}
+          <div className="clay-card-3d p-6 relative group">
+            <div className="flex items-center justify-between mb-3">
+              <span className="text-xs font-extrabold text-gray-500 uppercase tracking-wider">
+                Training Status
+              </span>
+              <div
+                className={`w-9 h-9 rounded-xl flex items-center justify-center ${
+                  user.trainingCompleted ? 'bg-emerald-100 text-emerald-700' : 'bg-amber-100 text-amber-700'
+                }`}
+              >
+                <GraduationCap size={18} />
+              </div>
+            </div>
+            <p className="text-2xl font-black text-gray-900">
+              {user.trainingCompleted ? 'Certified ✅' : 'Pending ⏳'}
+            </p>
+            <p className="text-xs text-gray-500 mt-1">
+              {user.trainingCompleted ? 'Official SIH Accreditation' : '5-min interactive quiz'}
+            </p>
+          </div>
+
+          {/* Card 2: Quiz Score */}
+          <div className="clay-card-3d p-6 relative group">
+            <div className="flex items-center justify-between mb-3">
+              <span className="text-xs font-extrabold text-gray-500 uppercase tracking-wider">
+                Assessment Score
+              </span>
+              <div className="w-9 h-9 rounded-xl bg-blue-100 text-blue-700 flex items-center justify-center">
+                <TrendingUp size={18} />
+              </div>
+            </div>
+            <p className="text-2xl font-black text-gray-900">
+              {user.trainingCompleted ? `${user.trainingScore} / 5` : '—'}
+            </p>
+            <p className="text-xs text-gray-500 mt-1">
+              {user.trainingCompleted ? 'Verified Segregation Score' : 'Score unlocks with test'}
+            </p>
+          </div>
+
+          {/* Card 3: Reports Filed */}
+          <div className="clay-card-3d p-6 relative group">
+            <div className="flex items-center justify-between mb-3">
+              <span className="text-xs font-extrabold text-gray-500 uppercase tracking-wider">
+                My Dump Reports
+              </span>
+              <div className="w-9 h-9 rounded-xl bg-purple-100 text-purple-700 flex items-center justify-center">
+                <Camera size={18} />
+              </div>
+            </div>
+            <p className="text-2xl font-black text-gray-900">{myReports.length}</p>
+            <p className="text-xs text-gray-500 mt-1">
+              {myReports.length > 0 ? 'Dispatched to sanitation unit' : '0 reports submitted yet'}
+            </p>
+          </div>
+
+          {/* Card 4: Tier Badge */}
+          <div className="clay-card-3d p-6 relative group">
+            <div className="flex items-center justify-between mb-3">
+              <span className="text-xs font-extrabold text-gray-500 uppercase tracking-wider">
+                Champion Rank
+              </span>
+              <div className="w-9 h-9 rounded-xl bg-amber-100 text-amber-700 flex items-center justify-center">
+                <Award size={18} />
+              </div>
+            </div>
+            <p className={`text-xl font-black ${badgeMeta.color}`}>{badgeMeta.label}</p>
+            <p className="text-[11px] text-gray-500 mt-1 truncate">{badgeMeta.desc}</p>
+          </div>
+        </div>
+
+        {/* ── 3D Quick Action Cards ── */}
+        <div className="grid md:grid-cols-3 gap-5">
           <Link
             href="/training"
-            className="flex items-center gap-4 bg-white border border-gray-100 rounded-2xl p-5 shadow-sm hover:shadow-md transition"
+            className="clay-card-3d p-6 flex items-center gap-4 hover:border-emerald-300 transition-all group"
           >
-            <div className="w-12 h-12 rounded-xl bg-primary-100 text-primary-600 flex items-center justify-center">
-              <GraduationCap size={24} />
+            <div className="w-14 h-14 rounded-2xl bg-emerald-100 text-emerald-700 flex items-center justify-center flex-shrink-0 group-hover:scale-105 transition-transform">
+              <GraduationCap size={26} />
             </div>
             <div>
-              <p className="font-semibold">
-                {user.trainingCompleted ? 'Review Training' : 'Start Training'}
-              </p>
-              <p className="text-sm text-gray-500">Learn waste segregation</p>
+              <h3 className="font-extrabold text-base text-gray-900">
+                {user.trainingCompleted ? 'Review Training & Certificate' : 'Start Citizen Training'}
+              </h3>
+              <p className="text-xs text-gray-500 mt-0.5">3-tier waste segregation guide</p>
             </div>
           </Link>
+
           <Link
             href="/report"
-            className="flex items-center gap-4 bg-white border border-gray-100 rounded-2xl p-5 shadow-sm hover:shadow-md transition"
+            className="clay-card-3d p-6 flex items-center gap-4 hover:border-red-300 transition-all group"
           >
-            <div className="w-12 h-12 rounded-xl bg-red-100 text-red-600 flex items-center justify-center">
-              <Camera size={24} />
+            <div className="w-14 h-14 rounded-2xl bg-red-100 text-red-600 flex items-center justify-center flex-shrink-0 group-hover:scale-105 transition-transform">
+              <Camera size={26} />
             </div>
             <div>
-              <p className="font-semibold">Report a Dump</p>
-              <p className="text-sm text-gray-500">Snap a geo-tagged photo</p>
+              <h3 className="font-extrabold text-base text-gray-900">Report Illegal Dump</h3>
+              <p className="text-xs text-gray-500 mt-0.5">GPS camera capture & classification</p>
             </div>
           </Link>
+
           <Link
             href="/facilities"
-            className="flex items-center gap-4 bg-white border border-gray-100 rounded-2xl p-5 shadow-sm hover:shadow-md transition"
+            className="clay-card-3d p-6 flex items-center gap-4 hover:border-teal-300 transition-all group"
           >
-            <div className="w-12 h-12 rounded-xl bg-teal-100 text-teal-600 flex items-center justify-center">
-              <Recycle size={24} />
+            <div className="w-14 h-14 rounded-2xl bg-teal-100 text-teal-700 flex items-center justify-center flex-shrink-0 group-hover:scale-105 transition-transform">
+              <MapPin size={26} />
             </div>
             <div>
-              <p className="font-semibold">Find Facilities</p>
-              <p className="text-sm text-gray-500">Locate nearby centres</p>
+              <h3 className="font-extrabold text-base text-gray-900">Find Waste Facilities</h3>
+              <p className="text-xs text-gray-500 mt-0.5">Biomethanisation & W-to-E GIS nodes</p>
             </div>
           </Link>
         </div>
 
-        {/* ── Mini Analytics ── */}
+        {/* ── Category Analytics Chart ── */}
         {allReports.length > 0 && (
-          <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6">
-            <div className="flex items-center gap-2 mb-4">
-              <BarChart3 size={18} className="text-primary-600" />
-              <h2 className="text-lg font-semibold">Waste Category Distribution</h2>
-              <span className="text-xs text-gray-400 ml-auto">{allReports.length} total reports</span>
+          <div className="clay-card-3d p-6 sm:p-8 space-y-4">
+            <div className="flex items-center justify-between border-b border-gray-200/80 pb-4">
+              <div className="flex items-center gap-2.5">
+                <div className="w-8 h-8 rounded-xl bg-emerald-100 text-emerald-700 flex items-center justify-center">
+                  <BarChart3 size={18} />
+                </div>
+                <h2 className="text-lg font-black text-gray-900">
+                  Municipal Waste Category Distribution
+                </h2>
+              </div>
+              <span className="text-xs font-bold text-gray-500">
+                {allReports.length} Total Registered Reports
+              </span>
             </div>
-            <div className="space-y-3">
+
+            <div className="space-y-3 pt-2">
               {Object.entries(categoryCount)
                 .sort((a, b) => b[1] - a[1])
                 .map(([cat, count]) => (
                   <div key={cat} className="flex items-center gap-3">
-                    <span className="text-xs font-medium w-28 text-gray-600 capitalize">{cat}</span>
-                    <div className="flex-1 bg-gray-100 rounded-full h-4 overflow-hidden">
+                    <span className="text-xs font-extrabold w-36 text-gray-700 capitalize truncate">
+                      {cat}
+                    </span>
+                    <div className="flex-1 bg-gray-100 rounded-full h-4 overflow-hidden p-0.5 shadow-inner">
                       <div
-                        className="bg-primary-500 h-4 rounded-full transition-all"
+                        className="bg-gradient-to-r from-emerald-500 to-green-600 h-3 rounded-full transition-all duration-500"
                         style={{ width: `${(count / maxCatCount) * 100}%` }}
                       />
                     </div>
-                    <span className="text-xs font-bold text-gray-700 w-8 text-right">{count}</span>
+                    <span className="text-xs font-black text-gray-800 w-8 text-right">{count}</span>
                   </div>
                 ))}
             </div>
           </div>
         )}
 
-        {/* ── Recent reports ── */}
-        <div className="bg-white rounded-2xl border border-gray-100 shadow-sm">
-          <div className="px-6 py-4 border-b border-gray-100">
-            <h2 className="text-lg font-semibold">My Recent Reports</h2>
+        {/* ── My Recent Reports Feed ── */}
+        <div className="clay-card-3d p-6 sm:p-8 space-y-5">
+          <div className="flex items-center justify-between border-b border-gray-200/80 pb-4">
+            <h2 className="text-lg font-black text-gray-900">My Recent Submissions</h2>
+            <Link
+              href="/report"
+              className="text-xs font-extrabold text-emerald-700 hover:underline flex items-center gap-1"
+            >
+              <span>+ New Report</span>
+            </Link>
           </div>
+
           {myReports.length === 0 ? (
-            <div className="px-6 py-12 text-center text-gray-400">
-              <Camera size={32} className="mx-auto mb-2 opacity-50" />
-              <p className="mb-3">No reports yet.</p>
+            <div className="py-12 text-center text-gray-400 space-y-3">
+              <Camera size={36} className="mx-auto opacity-40" />
+              <p className="text-sm font-bold text-gray-700">No reports submitted yet.</p>
               <Link
                 href="/report"
-                className="inline-flex items-center gap-1.5 text-sm text-primary-600 font-semibold hover:underline"
+                className="clay-btn-green text-white text-xs font-extrabold px-5 py-2.5 inline-flex items-center gap-2 shadow-sm"
               >
-                <Camera size={14} /> Report your first illegal dump
+                <Camera size={14} /> Report Your First Dump
               </Link>
             </div>
           ) : (
-            <ul className="divide-y divide-gray-50">
+            <div className="grid gap-3">
               {myReports
                 .slice()
                 .reverse()
                 .slice(0, 5)
                 .map((r) => (
-                  <li key={r.id} className="px-6 py-4 flex items-center gap-4">
-                    <img
-                      src={r.photoDataUrl}
-                      alt={`Report: ${r.description.slice(0, 30)}`}
-                      className="w-14 h-14 rounded-xl object-cover"
-                      onError={(e) => {
-                        (e.target as HTMLImageElement).style.display = 'none';
-                      }}
-                    />
-                    <div className="flex-1 min-w-0">
-                      <p className="text-sm font-medium truncate">{r.description}</p>
-                      <p className="text-xs text-gray-400 flex items-center gap-1 mt-0.5">
-                        <Clock size={12} />
-                        {new Date(r.createdAt).toLocaleDateString()}
-                      </p>
+                  <div
+                    key={r.id}
+                    className="p-4 rounded-2xl bg-white/80 border border-gray-200/80 flex items-center justify-between gap-4 shadow-sm"
+                  >
+                    <div className="flex items-center gap-3.5 min-w-0">
+                      <img
+                        src={r.photoDataUrl}
+                        alt="Dump Site Thumbnail"
+                        className="w-14 h-14 rounded-xl object-cover border border-gray-200 flex-shrink-0"
+                        onError={(e) => {
+                          (e.target as HTMLElement).style.display = 'none';
+                        }}
+                      />
+                      <div className="min-w-0">
+                        <p className="text-sm font-bold text-gray-900 truncate">{r.description}</p>
+                        <div className="flex items-center gap-2 mt-1 text-[11px] text-gray-500">
+                          <span className="bg-gray-100 px-2 py-0.5 rounded-full font-semibold">
+                            {(r.wasteCategory || 'mixed').replace('_', ' ')}
+                          </span>
+                          <span>•</span>
+                          <span className="flex items-center gap-1">
+                            <Clock size={11} />
+                            {new Date(r.createdAt).toLocaleDateString()}
+                          </span>
+                        </div>
+                      </div>
                     </div>
+
                     <span
-                      className={`text-xs font-semibold px-2.5 py-1 rounded-full ${
+                      className={`text-xs font-black px-3 py-1 rounded-full flex-shrink-0 ${
                         r.status === 'resolved'
-                          ? 'bg-green-100 text-green-700'
+                          ? 'bg-emerald-100 text-emerald-800'
                           : r.status === 'reviewed'
-                          ? 'bg-blue-100 text-blue-700'
-                          : 'bg-amber-100 text-amber-700'
+                          ? 'bg-blue-100 text-blue-800'
+                          : 'bg-amber-100 text-amber-800'
                       }`}
                     >
-                      {r.status === 'resolved' && (
-                        <CheckCircle2 size={12} className="inline mr-1" />
-                      )}
-                      {r.status === 'pending' && (
-                        <AlertTriangle size={12} className="inline mr-1" />
-                      )}
-                      {r.status.charAt(0).toUpperCase() + r.status.slice(1)}
+                      {r.status.toUpperCase()}
                     </span>
-                  </li>
+                  </div>
                 ))}
-            </ul>
+            </div>
           )}
         </div>
       </div>
     </Layout>
   );
 }
+
