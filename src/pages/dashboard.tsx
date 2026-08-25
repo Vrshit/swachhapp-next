@@ -371,11 +371,11 @@ export default function DashboardPage() {
             </div>
           </div>
         )}
-      </div>
 
         {/* ── My Recent Reports Feed ── */}
         <div className="clay-card-3d p-6 sm:p-8 space-y-5">
           <div className="flex items-center justify-between border-b border-gray-200/80 pb-4">
+
             <h2 className="text-lg font-black text-gray-900">My Recent Submissions</h2>
             <Link
               href="/report"
