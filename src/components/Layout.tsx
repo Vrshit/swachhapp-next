@@ -6,7 +6,6 @@ import type { User } from '@/lib/types';
 import {
   Recycle,
   LayoutDashboard,
-  GraduationCap,
   Camera,
   MapPin,
   Shield,
@@ -27,7 +26,6 @@ const BADGE_EMOJI: Record<string, string> = {
 
 const NAV_ITEMS = [
   { href: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
-  { href: '/training', label: 'Training', icon: GraduationCap },
   { href: '/report', label: 'Report Dump', icon: Camera },
   { href: '/facilities', label: 'Facilities', icon: MapPin },
 ];

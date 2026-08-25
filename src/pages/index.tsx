@@ -26,20 +26,6 @@ import {
 
 const FEATURES = [
   {
-    id: 'training',
-    title: 'Mandatory Training',
-    tag: 'Citizen Certification',
-    badge: '🎓 3D Gamified Modules',
-    color: 'from-emerald-500/20 to-green-600/10',
-    border: 'border-emerald-200/80',
-    accentColor: 'text-emerald-700',
-    iconBg: 'bg-emerald-100 text-emerald-700',
-    desc: 'Interactive 3-tier education covering wet vs dry segregation, home bio-composting, and hazardous handling with verifiable digital certificates.',
-    stats: '100% Verified Segregation',
-    link: '/training',
-    cta: 'Start 5-Min Training',
-  },
-  {
     id: 'reporting',
     title: 'Geo-Tagged Photo Reporting',
     tag: 'Yadgir Model Powered',
@@ -188,12 +174,6 @@ export default function LandingPage() {
           {/* Desktop Nav Links */}
           <nav className="hidden md:flex items-center gap-1 bg-black/[0.03] p-1 rounded-full border border-black/[0.04]">
             <Link
-              href="/training"
-              className="px-4 py-1.5 rounded-full text-xs font-semibold text-gray-700 hover:text-emerald-800 hover:bg-white/90 transition-all duration-200"
-            >
-              Training
-            </Link>
-            <Link
               href="/report"
               className="px-4 py-1.5 rounded-full text-xs font-semibold text-gray-700 hover:text-emerald-800 hover:bg-white/90 transition-all duration-200"
             >
@@ -258,7 +238,7 @@ export default function LandingPage() {
                 href={isLoggedIn ? '/dashboard' : '/login'}
                 className="w-full sm:w-auto clay-btn-green text-white font-bold px-8 py-4 text-base flex items-center justify-center gap-3 shine-sweep-effect"
               >
-                <span>{isLoggedIn ? 'Enter Control Center' : 'Start Citizen Training'}</span>
+                <span>{isLoggedIn ? 'Enter Control Center' : 'Get Started'}</span>
                 <ArrowRight size={18} />
               </Link>
               <Link
@@ -715,9 +695,6 @@ export default function LandingPage() {
             <span>• Smart India Hackathon 2026</span>
           </div>
           <div className="flex items-center gap-4 font-semibold">
-            <Link href="/training" className="hover:text-emerald-700">
-              Training
-            </Link>
             <Link href="/report" className="hover:text-emerald-700">
               Report Dump
             </Link>
