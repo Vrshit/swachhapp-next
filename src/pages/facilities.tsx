@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import dynamic from 'next/dynamic';
 import Layout from '@/components/Layout';
-import { getFacilities, getDistanceKm } from '@/lib/store';
+import { getFacilities, getDistanceKm, SEED_SCRAP_RATES, SEED_TIPPERS } from '@/lib/store';
 import type { Facility } from '@/lib/types';
 import {
   MapPin,
@@ -16,6 +16,10 @@ import {
   Phone,
   Compass,
   ArrowUpRight,
+  Truck,
+  TrendingUp,
+  Coins,
+  BatteryCharging,
 } from 'lucide-react';
 
 const MapWithNoSSR = dynamic(() => import('@/components/FacilityMap'), {
@@ -86,7 +90,6 @@ export default function FacilitiesPage() {
           setFacilities(withDist);
         },
         () => {
-          // Fallback simulation for demo judges
           const fallback = { lat: 28.6139, lng: 77.209 };
           setUserLoc(fallback);
           const withDist = raw.map((f) => ({
@@ -123,7 +126,7 @@ export default function FacilitiesPage() {
   return (
     <Layout>
       <div className="max-w-6xl mx-auto space-y-8">
-        {/* ── 3D Page Header ── */}
+        {/* ── Page Header ── */}
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div>
             <div className="inline-flex items-center gap-2 text-xs font-bold text-teal-700 bg-teal-100 px-3 py-1 rounded-full mb-2">
@@ -145,6 +148,40 @@ export default function FacilitiesPage() {
             <span className="text-xs font-black text-emerald-800">
               {facilities.length} Verified Municipal Nodes
             </span>
+          </div>
+        </div>
+
+        {/* ── Daily Scrap Buyback Market Rate Card ── */}
+        <div className="clay-card-3d p-6 space-y-4">
+          <div className="flex items-center justify-between border-b border-gray-200/80 pb-3">
+            <div className="flex items-center gap-2 font-black text-sm text-gray-900">
+              <Coins size={18} className="text-amber-600" />
+              <span>Daily Scrap Buyback Rates (Govt Approved Market Baseline)</span>
+            </div>
+            <span className="text-[11px] font-bold text-gray-500">Updated Today 09:00 AM</span>
+          </div>
+
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
+            {SEED_SCRAP_RATES.map((scrap) => (
+              <div key={scrap.id} className="p-3 bg-white/80 rounded-2xl border border-gray-200/80 shadow-xs">
+                <div className="flex items-center justify-between">
+                  <span className="text-xl">{scrap.icon}</span>
+                  <span
+                    className={`text-[10px] font-black px-1.5 py-0.5 rounded-md ${
+                      scrap.trend === 'up'
+                        ? 'bg-emerald-100 text-emerald-800'
+                        : scrap.trend === 'down'
+                        ? 'bg-red-100 text-red-800'
+                        : 'bg-gray-100 text-gray-700'
+                    }`}
+                  >
+                    {scrap.trend === 'up' ? '▲ Up' : scrap.trend === 'down' ? '▼ Down' : '● Fixed'}
+                  </span>
+                </div>
+                <p className="text-xs font-bold text-gray-800 mt-2 truncate">{scrap.material}</p>
+                <p className="text-base font-black text-emerald-800 mt-0.5">₹{scrap.pricePerKg} <span className="text-[10px] font-normal text-gray-500">/ kg</span></p>
+              </div>
+            ))}
           </div>
         </div>
 
@@ -189,10 +226,51 @@ export default function FacilitiesPage() {
           </div>
         </div>
 
-        {/* ── 3D Interactive Spatial Map Frame ── */}
+        {/* ── Spatial Map Frame ── */}
         <div className="clay-card-3d p-3 border-2 border-emerald-100 shadow-xl overflow-hidden">
           <div className="h-[480px] rounded-2xl overflow-hidden">
             <MapWithNoSSR facilities={filtered} />
+          </div>
+        </div>
+
+        {/* ── Live Tipper Vehicles GPS Fleet Status ── */}
+        <div className="clay-card-3d p-6 space-y-4">
+          <div className="flex items-center justify-between border-b border-gray-200/80 pb-3">
+            <div className="flex items-center gap-2 font-black text-sm text-gray-900">
+              <Truck size={18} className="text-emerald-700" />
+              <span>Active Municipal Electric Tipper Fleet (Live Telematics)</span>
+            </div>
+            <span className="text-[11px] font-bold text-emerald-800 bg-emerald-100 px-2 py-0.5 rounded-full">
+              3 Electric Tippers Online
+            </span>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+            {SEED_TIPPERS.map((tipper) => (
+              <div key={tipper.id} className="p-4 bg-white/80 rounded-2xl border border-gray-200/80 shadow-xs flex items-center justify-between">
+                <div className="space-y-1">
+                  <div className="flex items-center gap-2">
+                    <span className="font-mono font-black text-xs text-gray-900">{tipper.vehicleNumber}</span>
+                    <span
+                      className={`text-[9px] font-extrabold px-1.5 py-0.5 rounded-full uppercase ${
+                        tipper.status === 'en_route'
+                          ? 'bg-blue-100 text-blue-800'
+                          : tipper.status === 'collecting'
+                          ? 'bg-amber-100 text-amber-800'
+                          : 'bg-emerald-100 text-emerald-800'
+                      }`}
+                    >
+                      {tipper.status.replace('_', ' ')}
+                    </span>
+                  </div>
+                  <p className="text-[11px] text-gray-500">Driver: {tipper.driverName} • {tipper.assignedWard}</p>
+                </div>
+                <div className="flex items-center gap-1 text-xs font-bold text-emerald-700 bg-emerald-50 px-2 py-1 rounded-xl">
+                  <BatteryCharging size={13} />
+                  <span>{tipper.batteryLevel}%</span>
+                </div>
+              </div>
+            ))}
           </div>
         </div>
 
@@ -224,9 +302,16 @@ export default function FacilitiesPage() {
                           <h3 className="font-extrabold text-base text-gray-900 leading-snug">
                             {f.name}
                           </h3>
-                          <span className="text-[11px] font-bold text-emerald-800 bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-200">
-                            {meta.label}
-                          </span>
+                          <div className="flex items-center gap-2 mt-0.5">
+                            <span className="text-[11px] font-bold text-emerald-800 bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-200">
+                              {meta.label}
+                            </span>
+                            {f.capacityUtilization && (
+                              <span className="text-[10px] font-extrabold bg-blue-50 text-blue-800 px-2 py-0.5 rounded-full border border-blue-200">
+                                {f.capacityUtilization}% Capacity
+                              </span>
+                            )}
+                          </div>
                         </div>
                       </div>
 
@@ -284,4 +369,5 @@ export default function FacilitiesPage() {
     </Layout>
   );
 }
+
 

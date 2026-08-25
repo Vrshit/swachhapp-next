@@ -37,6 +37,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [menuOpen, setMenuOpen] = useState(false);
   const [mounted, setMounted] = useState(false);
+  const [lang, setLang] = useState<'en' | 'hi' | 'kn'>('en');
 
   useEffect(() => {
     setMounted(true);
@@ -129,8 +130,30 @@ export default function Layout({ children }: { children: React.ReactNode }) {
             })}
           </nav>
 
-          {/* User Profile Pill & Actions */}
-          <div className="hidden md:flex items-center gap-3">
+          {/* User Profile Pill & Language Selector */}
+          <div className="hidden md:flex items-center gap-2.5">
+            {/* Quick Language Toggle */}
+            <div className="flex items-center bg-white/80 border border-gray-200 rounded-full p-0.5 text-[10px] font-black text-gray-600">
+              <button
+                onClick={() => setLang('en')}
+                className={`px-2 py-0.5 rounded-full transition ${lang === 'en' ? 'bg-emerald-600 text-white' : 'hover:text-emerald-800'}`}
+              >
+                EN
+              </button>
+              <button
+                onClick={() => setLang('hi')}
+                className={`px-2 py-0.5 rounded-full transition ${lang === 'hi' ? 'bg-emerald-600 text-white' : 'hover:text-emerald-800'}`}
+              >
+                हिन्दी
+              </button>
+              <button
+                onClick={() => setLang('kn')}
+                className={`px-2 py-0.5 rounded-full transition ${lang === 'kn' ? 'bg-emerald-600 text-white' : 'hover:text-emerald-800'}`}
+              >
+                ಕನ್ನಡ
+              </button>
+            </div>
+
             <div className="flex items-center gap-2 bg-emerald-50 border border-emerald-200/80 px-3 py-1.5 rounded-full">
               <span className="text-sm">{BADGE_EMOJI[user.badge] || '🌱'}</span>
               <span className="text-xs font-bold text-gray-800 max-w-[120px] truncate">
@@ -143,11 +166,12 @@ export default function Layout({ children }: { children: React.ReactNode }) {
 
             <button
               onClick={handleLogout}
-              className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-xs font-bold text-gray-600 hover:text-red-700 hover:bg-red-50 transition-all border border-transparent hover:border-red-200"
+              className="flex items-center gap-1 px-3 py-1.5 rounded-full text-xs font-bold text-gray-600 hover:text-red-700 hover:bg-red-50 transition-all"
             >
-              <LogOut size={14} /> Logout
+              <LogOut size={13} />
             </button>
           </div>
+
 
           {/* Mobile hamburger */}
           <button

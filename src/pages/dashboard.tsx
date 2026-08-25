@@ -1,7 +1,14 @@
 import { useEffect, useState } from 'react';
 import Layout from '@/components/Layout';
-import { getCurrentUser, getReports } from '@/lib/store';
-import type { User, Report } from '@/lib/types';
+import {
+  getCurrentUser,
+  getReports,
+  SEED_REWARDS,
+  SEED_WARD_RANKINGS,
+  getRedeemedRewards,
+  redeemReward,
+} from '@/lib/store';
+import type { User, Report, RewardVoucher } from '@/lib/types';
 import {
   Award,
   Camera,
@@ -18,6 +25,11 @@ import {
   Flame,
   CheckCheck,
   Compass,
+  Gift,
+  QrCode,
+  X,
+  Trophy,
+  TrendingUp,
 } from 'lucide-react';
 import Link from 'next/link';
 
@@ -58,17 +70,21 @@ const BADGE_META: Record<
 export default function DashboardPage() {
   const [user, setUser] = useState<User | null>(null);
   const [reports, setReports] = useState<Report[]>([]);
+  const [redeemed, setRedeemed] = useState<RewardVoucher[]>([]);
+  const [selectedReward, setSelectedReward] = useState<RewardVoucher | null>(null);
+  const [rewardMsg, setRewardMsg] = useState<string | null>(null);
 
   useEffect(() => {
     setUser(getCurrentUser());
     setReports(getReports());
+    setRedeemed(getRedeemedRewards());
   }, []);
 
   if (!user) return null;
 
   const myReports = reports.filter((r) => r.userId === user.id);
   const resolvedCount = myReports.filter((r) => r.status === 'resolved').length;
-  const civicPoints = myReports.length * 10 + resolvedCount * 25 + 50;
+  const civicPoints = myReports.length * 15 + resolvedCount * 30 + (user.civicPoints || 50);
   const allReports = reports;
   const badgeMeta = BADGE_META[user.badge] ?? BADGE_META.none;
 
@@ -78,6 +94,17 @@ export default function DashboardPage() {
     categoryCount[cat] = (categoryCount[cat] || 0) + 1;
   });
   const maxCatCount = Math.max(...Object.values(categoryCount), 1);
+
+  const handleRedeem = (reward: RewardVoucher) => {
+    try {
+      redeemReward(reward);
+      setRedeemed(getRedeemedRewards());
+      setSelectedReward(reward);
+      setRewardMsg(`🎉 Voucher Claimed! Your code is ready.`);
+    } catch (err: any) {
+      setRewardMsg(err.message || 'Unable to redeem voucher.');
+    }
+  };
 
   return (
     <Layout>
@@ -101,6 +128,12 @@ export default function DashboardPage() {
                 Track your active dump site dispatches, monitor municipal tipper response times, and
                 earn verified Civic Points toward your city's Green Champion leaderboard.
               </p>
+
+              {/* Civic Streak Pill */}
+              <div className="inline-flex items-center gap-2 text-xs font-bold text-amber-900 bg-amber-100/90 px-3 py-1 rounded-full border border-amber-300">
+                <Flame size={14} className="text-amber-600 fill-amber-500" />
+                <span>🔥 7-Day Active Citizen Cleanliness Streak</span>
+              </div>
             </div>
 
             <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
@@ -161,14 +194,14 @@ export default function DashboardPage() {
           <div className="clay-card-3d p-6 relative group border-t-4 border-t-amber-500">
             <div className="flex items-center justify-between mb-3">
               <span className="text-xs font-black text-gray-500 uppercase tracking-wider">
-                Civic Impact Score
+                Civic Points Balance
               </span>
               <div className="w-10 h-10 rounded-2xl bg-amber-100 text-amber-700 flex items-center justify-center shadow-inner">
                 <Flame size={20} />
               </div>
             </div>
             <p className="text-3xl font-black text-amber-800">{civicPoints} pts</p>
-            <p className="text-xs text-gray-500 mt-1">+10 pts per geo-tagged report</p>
+            <p className="text-xs text-gray-500 mt-1">Redeemable for tax rebates & compost</p>
           </div>
 
           {/* Card 4: Champion Rank */}
@@ -186,46 +219,119 @@ export default function DashboardPage() {
           </div>
         </div>
 
-        {/* ── 3D Quick Action Cards ── */}
-        <div className="grid md:grid-cols-3 gap-5">
-          <Link
-            href="/report"
-            className="clay-card-3d p-6 flex items-center gap-4 hover:border-emerald-400 transition-all group"
-          >
-            <div className="w-14 h-14 rounded-2xl bg-emerald-100 text-emerald-700 flex items-center justify-center flex-shrink-0 group-hover:scale-105 transition-transform shadow-sm">
-              <Camera size={26} />
+        {/* ── Green Rewards Redemption Marketplace ── */}
+        <div className="clay-card-3d p-6 sm:p-8 space-y-6">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-gray-200/80 pb-4">
+            <div className="flex items-center gap-2.5">
+              <div className="w-9 h-9 rounded-2xl bg-emerald-100 text-emerald-700 flex items-center justify-center">
+                <Gift size={20} />
+              </div>
+              <div>
+                <h2 className="text-lg font-black text-gray-900">Green Rewards & Vouchers</h2>
+                <p className="text-xs text-gray-500">Convert your civic points into municipal incentives</p>
+              </div>
             </div>
-            <div>
-              <h3 className="font-extrabold text-base text-gray-900">Report Illegal Dump</h3>
-              <p className="text-xs text-gray-500 mt-0.5">GPS camera capture & tipper dispatch</p>
+            <div className="glass-card-3d rounded-xl px-3 py-1.5 self-start text-xs font-black text-emerald-800">
+              Balance: {civicPoints} Civic Points
             </div>
-          </Link>
+          </div>
 
-          <Link
-            href="/facilities"
-            className="clay-card-3d p-6 flex items-center gap-4 hover:border-teal-400 transition-all group"
-          >
-            <div className="w-14 h-14 rounded-2xl bg-teal-100 text-teal-700 flex items-center justify-center flex-shrink-0 group-hover:scale-105 transition-transform shadow-sm">
-              <Compass size={26} />
+          {rewardMsg && (
+            <div className="p-3 bg-emerald-50 border border-emerald-200 rounded-xl text-xs font-bold text-emerald-800">
+              {rewardMsg}
             </div>
-            <div>
-              <h3 className="font-extrabold text-base text-gray-900">Find Waste Facilities</h3>
-              <p className="text-xs text-gray-500 mt-0.5">Biomethanisation & W-to-E GIS nodes</p>
-            </div>
-          </Link>
+          )}
 
-          <Link
-            href="/admin"
-            className="clay-card-3d p-6 flex items-center gap-4 hover:border-amber-400 transition-all group"
-          >
-            <div className="w-14 h-14 rounded-2xl bg-amber-100 text-amber-700 flex items-center justify-center flex-shrink-0 group-hover:scale-105 transition-transform shadow-sm">
-              <ShieldCheck size={26} />
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+            {SEED_REWARDS.map((rew) => {
+              const canAfford = civicPoints >= rew.pointsCost;
+              return (
+                <div
+                  key={rew.id}
+                  className="clay-card-3d p-5 flex flex-col justify-between hover:border-emerald-300 transition-all bg-white/70"
+                >
+                  <div>
+                    <div className="flex items-center justify-between mb-2">
+                      <span className="text-2xl">{rew.icon}</span>
+                      <span className="text-xs font-black text-amber-700 bg-amber-50 px-2 py-0.5 rounded-full border border-amber-200">
+                        {rew.pointsCost} Pts
+                      </span>
+                    </div>
+                    <h3 className="font-extrabold text-sm text-gray-900 leading-snug">{rew.title}</h3>
+                    <p className="text-[11px] text-gray-500 mt-1 leading-relaxed">{rew.description}</p>
+                  </div>
+
+                  <div className="pt-4 mt-3 border-t border-gray-100 flex items-center justify-between">
+                    <span className="text-[10px] font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-full">
+                      {rew.discountValue}
+                    </span>
+                    <button
+                      onClick={() => handleRedeem(rew)}
+                      disabled={!canAfford}
+                      className="clay-btn-green text-white text-[11px] font-black px-3.5 py-1.5 disabled:opacity-40"
+                    >
+                      Redeem
+                    </button>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+
+        {/* ── Swachh Survekshan Municipal Ward Leaderboard ── */}
+        <div className="clay-card-3d p-6 sm:p-8 space-y-6">
+          <div className="flex items-center justify-between border-b border-gray-200/80 pb-4">
+            <div className="flex items-center gap-2.5">
+              <div className="w-9 h-9 rounded-2xl bg-amber-100 text-amber-700 flex items-center justify-center">
+                <Trophy size={20} />
+              </div>
+              <div>
+                <h2 className="text-lg font-black text-gray-900">Swachh Survekshan Ward Leaderboard</h2>
+                <p className="text-xs text-gray-500">Live Ward Cleanliness Index (WCI) and Tipper SLA tracking</p>
+              </div>
             </div>
-            <div>
-              <h3 className="font-extrabold text-base text-gray-900">Green Champions Hub</h3>
-              <p className="text-xs text-gray-500 mt-0.5">Ward officer dispatch & governance log</p>
-            </div>
-          </Link>
+            <span className="text-xs font-bold text-emerald-800 bg-emerald-100 px-3 py-1 rounded-full">
+              City Zone: Active
+            </span>
+          </div>
+
+          <div className="overflow-x-auto">
+            <table className="w-full text-xs text-left" aria-label="Ward Leaderboard">
+              <thead>
+                <tr className="border-b border-gray-200 text-gray-500 font-extrabold uppercase tracking-wider text-[10px]">
+                  <th className="py-2.5 px-3">Rank</th>
+                  <th className="py-2.5 px-3">Municipal Ward</th>
+                  <th className="py-2.5 px-3">Zone</th>
+                  <th className="py-2.5 px-3">Cleanliness Index (WCI)</th>
+                  <th className="py-2.5 px-3">Resolution Rate</th>
+                  <th className="py-2.5 px-3">Avg Cleanup SLA</th>
+                  <th className="py-2.5 px-3">Active Champions</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-gray-100 font-medium text-gray-800">
+                {SEED_WARD_RANKINGS.map((ward) => (
+                  <tr key={ward.id} className="hover:bg-emerald-50/40 transition-colors">
+                    <td className="py-3 px-3 font-black text-sm">
+                      {ward.rank === 1 ? '🥇 #1' : ward.rank === 2 ? '🥈 #2' : ward.rank === 3 ? '🥉 #3' : `#${ward.rank}`}
+                    </td>
+                    <td className="py-3 px-3 font-bold text-gray-900">
+                      Ward {ward.wardNumber} • {ward.name}
+                    </td>
+                    <td className="py-3 px-3 text-gray-500">{ward.zone}</td>
+                    <td className="py-3 px-3">
+                      <span className="font-black text-emerald-800 bg-emerald-100 px-2 py-0.5 rounded-full">
+                        ★ {ward.cleanlinessIndex} / 5.0
+                      </span>
+                    </td>
+                    <td className="py-3 px-3 font-bold text-teal-700">{ward.cleanupRate}%</td>
+                    <td className="py-3 px-3 text-gray-600">{ward.avgResponseHours} hrs</td>
+                    <td className="py-3 px-3 font-bold text-gray-900">{ward.activeChampions} citizens</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
         </div>
 
         {/* ── Category Analytics Chart ── */}
@@ -265,7 +371,7 @@ export default function DashboardPage() {
             </div>
           </div>
         )}
-
+      </div>
 
         {/* ── My Recent Reports Feed ── */}
         <div className="clay-card-3d p-6 sm:p-8 space-y-5">
@@ -342,7 +448,41 @@ export default function DashboardPage() {
           )}
         </div>
       </div>
+
+      {/* ── Voucher Code Modal ── */}
+      {selectedReward && (
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 px-4">
+          <div className="clay-card-3d bg-white p-6 sm:p-8 max-w-sm w-full shadow-2xl space-y-4 text-center">
+            <div className="w-16 h-16 rounded-3xl bg-emerald-100 text-emerald-700 flex items-center justify-center mx-auto text-3xl shadow-inner">
+              {selectedReward.icon}
+            </div>
+            <div>
+              <h3 className="font-extrabold text-lg text-gray-900">{selectedReward.title}</h3>
+              <p className="text-xs text-gray-500 mt-1">{selectedReward.description}</p>
+            </div>
+
+            {/* Simulated QR & Voucher Barcode */}
+            <div className="p-4 bg-gray-50 rounded-2xl border border-gray-200 space-y-2">
+              <div className="flex items-center justify-center gap-2 font-mono font-black text-emerald-900 text-base tracking-widest bg-emerald-100 py-2 rounded-xl">
+                <QrCode size={18} />
+                <span>{selectedReward.code}</span>
+              </div>
+              <p className="text-[10px] text-gray-400 font-semibold">
+                Valid until {selectedReward.expiresAt} • Present at Municipal Office or Transit Counter
+              </p>
+            </div>
+
+            <button
+              onClick={() => setSelectedReward(null)}
+              className="clay-btn-green text-white font-bold px-6 py-2.5 text-xs w-full"
+            >
+              Done / Close
+            </button>
+          </div>
+        </div>
+      )}
     </Layout>
   );
 }
+
 

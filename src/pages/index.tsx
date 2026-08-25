@@ -1,7 +1,8 @@
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/router';
-import { getCurrentUser } from '@/lib/store';
+import { getCurrentUser, lookupWasteItem } from '@/lib/store';
+import type { WasteItemGuide } from '@/lib/types';
 import {
   Recycle,
   GraduationCap,
@@ -98,35 +99,31 @@ const FEATURES = [
 
 const METRICS_3D = [
   {
-    value: '1.7L',
+    value: '1,70,339',
     unit: 'TPD',
-    label: 'Daily Waste Generated',
-    sub: 'CPCB National Baseline',
-    glow: 'rgba(34, 197, 94, 0.4)',
-    badge: '⚡ Tracked',
+    label: 'Total Waste Generated',
+    sub: 'Daily Municipal Load (CPCB 2022)',
+    badge: '📊 National Scale',
   },
   {
-    value: '54%',
+    value: '54.0%',
     unit: 'Treated',
-    label: 'Scientific Processing',
-    sub: 'Biomethanisation & Energy',
-    glow: 'rgba(59, 130, 246, 0.4)',
-    badge: '🌱 Up 8.4%',
+    label: 'Scientifically Processed',
+    sub: 'Biomethanisation & W-to-E',
+    badge: '⚡ Grid Conversion',
   },
   {
-    value: '37K',
-    unit: 'TPD Gap',
-    label: 'Zero-Landfill Mission',
-    sub: 'Target for SIH 2026',
-    glow: 'rgba(245, 158, 11, 0.4)',
-    badge: '🎯 Target',
+    value: '47,000+',
+    unit: 'Blackspots',
+    label: 'Remediated & Closed',
+    sub: 'Yadgir Civic Protocol',
+    badge: '🛡️ Rapid Triage',
   },
   {
     value: '249+',
     unit: 'Plants',
-    label: 'W-to-E & Bio Facilities',
-    sub: 'Active GIS Nodes',
-    glow: 'rgba(168, 85, 247, 0.4)',
+    label: 'GIS Biomethanisation Units',
+    sub: 'Connected in Spatial Network',
     badge: '📍 Connected',
   },
 ];
@@ -136,6 +133,10 @@ export default function LandingPage() {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [activeSlide, setActiveSlide] = useState(0);
   const [mounted, setMounted] = useState(false);
+
+  // Which Bin AI Search State
+  const [searchWasteQuery, setSearchWasteQuery] = useState('coconut');
+  const [foundGuide, setFoundGuide] = useState<WasteItemGuide | null>(() => lookupWasteItem('coconut'));
 
   useEffect(() => {
     setMounted(true);
@@ -412,6 +413,97 @@ export default function LandingPage() {
           ))}
         </div>
       </section>
+
+      {/* ── 3.5 Instant "Which Bin?" AI Segregator Quick Search Tool ── */}
+      <section className="py-8 px-4 max-w-5xl mx-auto">
+        <div className="clay-card-3d p-8 sm:p-10 bg-gradient-to-br from-white via-emerald-50/50 to-teal-50/40 border-2 border-emerald-200/80 space-y-6">
+          <div className="text-center max-w-2xl mx-auto space-y-2">
+            <div className="inline-flex items-center gap-2 text-xs font-black uppercase tracking-widest text-emerald-800 bg-emerald-100 px-3.5 py-1 rounded-full border border-emerald-300">
+              <Sparkles size={14} className="text-emerald-700 animate-pulse" />
+              <span>AI Source Segregation Guide</span>
+            </div>
+            <h3 className="text-2xl sm:text-3xl font-black text-gray-900">
+              Which Bin Does It Go In?
+            </h3>
+            <p className="text-xs sm:text-sm text-gray-600">
+              Type any common household item or tap a preset to get the target bin color, decomposition clock, and handling advice.
+            </p>
+          </div>
+
+          {/* Quick preset buttons */}
+          <div className="flex flex-wrap gap-2 justify-center pt-2">
+            {[
+              { label: '🥥 Coconut Shell', q: 'coconut' },
+              { label: '🥛 Milk Pouch', q: 'milk' },
+              { label: '💊 Expired Pills', q: 'medicine' },
+              { label: '🔋 Batteries', q: 'battery' },
+              { label: '📦 Pizza Carton', q: 'cardboard' },
+              { label: '🧴 Plastic Bottle', q: 'plastic' },
+              { label: '🍾 Broken Glass', q: 'glass' },
+            ].map((p) => (
+              <button
+                key={p.q}
+                onClick={() => {
+                  setSearchWasteQuery(p.q);
+                  setFoundGuide(lookupWasteItem(p.q));
+                }}
+                className="text-xs font-bold bg-white/90 hover:bg-emerald-100 text-gray-700 hover:text-emerald-900 border border-gray-200 hover:border-emerald-300 px-3.5 py-1.5 rounded-full transition-all shadow-xs"
+              >
+                {p.label}
+              </button>
+            ))}
+          </div>
+
+          {/* Search bar */}
+          <div className="max-w-xl mx-auto relative">
+            <input
+              type="text"
+              placeholder="Search item (e.g. thermocol, diaper, cables, banana peel)…"
+              value={searchWasteQuery}
+              onChange={(e) => {
+                setSearchWasteQuery(e.target.value);
+                setFoundGuide(lookupWasteItem(e.target.value));
+              }}
+              className="w-full pl-5 pr-12 py-3.5 bg-white rounded-2xl border-2 border-emerald-200 focus:outline-none focus:border-emerald-500 text-sm font-medium shadow-inner"
+            />
+            <span className="absolute right-4 top-1/2 -translate-y-1/2 text-lg">🔍</span>
+          </div>
+
+          {/* Found Result Card */}
+          {foundGuide && (
+            <div className="max-w-xl mx-auto p-5 rounded-2xl bg-white border-2 border-emerald-300 shadow-md flex items-start gap-4 animate-float-3d">
+              <span className="text-4xl p-2 bg-gray-50 rounded-2xl shadow-inner flex-shrink-0">
+                {foundGuide.icon}
+              </span>
+              <div className="space-y-1 flex-1">
+                <div className="flex items-center justify-between">
+                  <h4 className="font-black text-base text-gray-900">{foundGuide.name}</h4>
+                  <span
+                    className={`text-[11px] font-black px-2.5 py-0.5 rounded-full ${
+                      foundGuide.binColor === 'green'
+                        ? 'bg-emerald-100 text-emerald-800'
+                        : foundGuide.binColor === 'blue'
+                        ? 'bg-blue-100 text-blue-800'
+                        : foundGuide.binColor === 'red'
+                        ? 'bg-red-100 text-red-800'
+                        : 'bg-gray-800 text-white'
+                    }`}
+                  >
+                    {foundGuide.binName}
+                  </span>
+                </div>
+                <p className="text-xs text-gray-500 font-semibold">
+                  ⏳ Decomposition: <b>{foundGuide.decompositionTime}</b>
+                </p>
+                <p className="text-xs text-emerald-900 bg-emerald-50/80 p-2.5 rounded-xl border border-emerald-100 font-medium mt-2">
+                  💡 <b>Disposal Guideline:</b> {foundGuide.disposalTip}
+                </p>
+              </div>
+            </div>
+          )}
+        </div>
+      </section>
+
 
       {/* ── 4. Feature Carousel (How It Works - 3D Claymorphic Slider) ── */}
       <section id="features" className="py-20 px-4 max-w-7xl mx-auto">
