@@ -11,6 +11,12 @@ import {
   TipperVehicle,
 } from './types';
 import { v4 as uuidv4 } from 'uuid';
+import {
+  insertReportToSupabase,
+  updateReportInSupabase,
+  fetchReportsFromSupabase,
+  isSupabaseConfigured,
+} from './supabase';
 
 // ──── Seed Facilities ────
 
@@ -621,6 +627,17 @@ export function getReports(): Report[] {
   return getItem<Report[]>(REPORTS_KEY, []);
 }
 
+export async function syncReportsWithSupabase(): Promise<Report[]> {
+  if (isSupabaseConfigured()) {
+    const cloudReports = await fetchReportsFromSupabase();
+    if (cloudReports && cloudReports.length > 0) {
+      setItem(REPORTS_KEY, cloudReports);
+      return cloudReports;
+    }
+  }
+  return getReports();
+}
+
 export function addReport(
   data: Omit<Report, 'id' | 'userId' | 'userName' | 'status' | 'createdAt'>
 ): Report {
@@ -640,8 +657,15 @@ export function addReport(
     createdAt: new Date().toISOString(),
   };
   const reports = getReports();
-  reports.push(report);
+  reports.unshift(report);
   setItem(REPORTS_KEY, reports);
+
+  // Sync with Supabase in background
+  if (isSupabaseConfigured()) {
+    insertReportToSupabase(report).catch((err) =>
+      console.warn('Background Supabase insert error:', err)
+    );
+  }
 
   // Update user report count, civic points, and badge
   user.reportsCount = (user.reportsCount || 0) + 1;
@@ -670,6 +694,13 @@ export function updateReportStatus(
       : r
   );
   setItem(REPORTS_KEY, reports);
+
+  // Sync status update with Supabase in background
+  if (isSupabaseConfigured()) {
+    updateReportInSupabase(reportId, status, adminNotes, resolvedPhotoDataUrl).catch((err) =>
+      console.warn('Background Supabase update error:', err)
+    );
+  }
 }
 
 // ──── Facilities ────
