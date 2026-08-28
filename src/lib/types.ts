@@ -57,7 +57,9 @@ export interface Facility {
   address: string;
   contact: string;
   operatingHours?: string;
+  capacity?: string;
   capacityUtilization?: number; // percentage (e.g. 68%)
+  acceptedWaste?: string[];
 }
 
 export interface TrainingQuestion {
@@ -114,11 +116,15 @@ export interface ScrapRate {
 export interface TipperVehicle {
   id: string;
   vehicleNumber: string;
+  plateNumber?: string;
   driverName: string;
   currentLat: number;
   currentLng: number;
   status: 'en_route' | 'collecting' | 'unloading' | 'standby';
   assignedWard: string;
+  currentWard?: string;
   batteryLevel: number;
+  batteryPercent?: number;
+  capacityKg?: number;
 }
 

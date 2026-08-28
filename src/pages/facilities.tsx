@@ -248,7 +248,7 @@ export default function FacilitiesPage() {
             {SEED_TIPPERS.map((tipper) => (
               <div key={tipper.id} className="p-4 rounded-2xl bg-white border border-emerald-200/90 space-y-2.5 shadow-sm">
                 <div className="flex items-center justify-between">
-                  <span className="font-mono font-black text-xs text-gray-900">{tipper.plateNumber}</span>
+                  <span className="font-mono font-black text-xs text-gray-900">{tipper.vehicleNumber || tipper.plateNumber}</span>
                   <span className="text-[10px] font-extrabold uppercase px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800">
                     {tipper.status}
                   </span>
@@ -256,12 +256,12 @@ export default function FacilitiesPage() {
                 <div className="flex items-center justify-between text-xs text-gray-600">
                   <span>{lang === 'hi' ? 'चालक:' : 'Driver:'} <strong>{tipper.driverName}</strong></span>
                   <span className="flex items-center gap-1 font-bold text-emerald-700">
-                    <BatteryCharging size={13} /> {tipper.batteryPercent}%
+                    <BatteryCharging size={13} /> {tipper.batteryLevel || tipper.batteryPercent || 80}%
                   </span>
                 </div>
                 <div className="text-[11px] text-gray-500 pt-1 border-t border-gray-100 flex items-center justify-between">
-                  <span>{lang === 'hi' ? 'वर्तमान वार्ड:' : 'Ward:'} {tipper.currentWard}</span>
-                  <span className="font-bold text-teal-800">{tipper.capacityKg} kg {lang === 'hi' ? 'क्षमता' : 'cap'}</span>
+                  <span>{lang === 'hi' ? 'वर्तमान वार्ड:' : 'Ward:'} {tipper.assignedWard || tipper.currentWard || 'Ward 14'}</span>
+                  <span className="font-bold text-teal-800">{tipper.capacityKg || 750} kg {lang === 'hi' ? 'क्षमता' : 'cap'}</span>
                 </div>
               </div>
             ))}
@@ -273,6 +273,7 @@ export default function FacilitiesPage() {
           {filtered.map((facility) => {
             const meta = TYPE_META[facility.type] ?? TYPE_META.biomethanisation;
             const Icon = meta.icon;
+            const acceptedWasteList = facility.acceptedWaste || ['wet_organic', 'dry_recyclable'];
 
             return (
               <div
@@ -310,16 +311,16 @@ export default function FacilitiesPage() {
                   <div className="p-3 bg-gray-50 rounded-2xl border border-gray-200/80 space-y-1.5 text-xs">
                     <div className="flex items-center justify-between">
                       <span className="text-gray-500">{t.plantCapacity}</span>
-                      <span className="font-bold text-gray-800">{facility.capacity}</span>
+                      <span className="font-bold text-gray-800">{facility.capacity || `${facility.capacityUtilization || 70}% Utilization`}</span>
                     </div>
                     <div className="flex items-center justify-between">
                       <span className="text-gray-500">{t.operatingHours}</span>
-                      <span className="font-semibold text-gray-700">{facility.operatingHours}</span>
+                      <span className="font-semibold text-gray-700">{facility.operatingHours || '8:00 AM – 6:00 PM'}</span>
                     </div>
                   </div>
 
                   <div className="flex flex-wrap gap-1.5 pt-1">
-                    {facility.acceptedWaste.map((w) => (
+                    {acceptedWasteList.map((w) => (
                       <span
                         key={w}
                         className="text-[10px] font-bold bg-white border border-gray-200 text-gray-600 px-2 py-0.5 rounded-full capitalize"
