@@ -405,16 +405,16 @@ export default function LandingPage() {
               <div className="sm:col-span-2 space-y-1">
                 <div className="flex items-center gap-2">
                   <span className="text-2xl">
-                    {foundGuide.binColor === 'green' ? '🟢' : foundGuide.binColor === 'blue' ? '🔵' : '🔴'}
+                    {foundGuide.icon || (foundGuide.binColor === 'green' ? '🟢' : foundGuide.binColor === 'blue' ? '🔵' : '🔴')}
                   </span>
                   <div>
-                    <h3 className="font-black text-base text-gray-900">{foundGuide.item}</h3>
+                    <h3 className="font-black text-base text-gray-900">{foundGuide.name}</h3>
                     <span className="text-[10px] font-black uppercase tracking-wider text-emerald-800 bg-emerald-100 px-2 py-0.5 rounded-full">
                       {foundGuide.category.replace('_', ' ')}
                     </span>
                   </div>
                 </div>
-                <p className="text-xs text-gray-700 pt-1 font-medium">{foundGuide.handlingTip}</p>
+                <p className="text-xs text-gray-700 pt-1 font-medium">{foundGuide.disposalTip}</p>
               </div>
 
               <div className="p-3 bg-white/90 rounded-xl border border-gray-200 text-center space-y-1">
