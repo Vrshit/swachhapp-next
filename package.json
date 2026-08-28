@@ -15,6 +15,7 @@
     "leaflet": "^1.9.4",
     "react-leaflet": "^4.2.1",
     "lucide-react": "^0.400.0",
+    "onnxruntime-web": "^1.18.0",
     "uuid": "^9.0.0"
   },
   "devDependencies": {
