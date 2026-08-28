@@ -21,9 +21,12 @@ import {
   Camera,
   CheckCheck,
 } from 'lucide-react';
+import { useLanguage } from '@/lib/translations';
 
 export default function AdminPage() {
   const router = useRouter();
+  const { t, lang } = useLanguage();
+
   const fileRef = useRef<HTMLInputElement>(null);
   const [user, setUser] = useState<User | null>(null);
   const [reports, setReports] = useState<Report[]>([]);
@@ -67,7 +70,7 @@ export default function AdminPage() {
     updateReportStatus(
       resolvingReport.id,
       'resolved',
-      adminNoteInput || 'Site inspected and completely cleared by municipal tipper team.',
+      adminNoteInput || (lang === 'hi' ? 'स्थल का निरीक्षण किया गया और स्वच्छता टीम द्वारा पूरी तरह साफ किया गया।' : 'Site inspected and completely cleared by municipal tipper team.'),
       resolvedProofPhoto || undefined
     );
     setReports(getReports());
@@ -130,13 +133,13 @@ export default function AdminPage() {
           <div>
             <div className="inline-flex items-center gap-2 text-xs font-bold text-emerald-800 bg-emerald-100 px-3 py-1 rounded-full mb-2">
               <Shield size={14} />
-              <span>Ward Officer Control Center</span>
+              <span>{t.officerDesk}</span>
             </div>
             <h1 className="text-3xl font-black text-gray-900 tracking-tight">
-              Green Champions Governance Panel
+              {t.adminTitle}
             </h1>
             <p className="text-gray-600 text-sm mt-0.5">
-              Triage citizen dump reports, review GPS photo evidence, and coordinate sanitation tippers.
+              {t.adminSubtitle}
             </p>
           </div>
 
@@ -146,12 +149,12 @@ export default function AdminPage() {
               className="clay-card-3d hover:bg-emerald-50 text-emerald-900 font-extrabold px-4 py-2.5 rounded-2xl flex items-center gap-2 text-xs border border-emerald-300 shadow-sm transition"
             >
               <Download size={14} />
-              <span>Export Audit Log (CSV)</span>
+              <span>{t.exportCsvBtn}</span>
             </button>
             <div className="glass-card-3d rounded-2xl px-4 py-2.5 flex items-center gap-2 border border-white">
               <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse-dot" />
               <span className="text-xs font-black text-emerald-900">
-                Role: {user.role.toUpperCase()}
+                {lang === 'hi' ? 'भूमिका:' : 'Role:'} {user.role.toUpperCase()}
               </span>
             </div>
           </div>
@@ -162,10 +165,10 @@ export default function AdminPage() {
           <div className="clay-card-3d p-6 border-l-4 border-l-amber-500 flex items-center justify-between">
             <div>
               <p className="text-xs font-black text-amber-800 uppercase tracking-wider">
-                Pending Triage
+                {t.awaitingReview}
               </p>
               <p className="text-3xl font-black text-gray-900 mt-1">{statusCounts.pending}</p>
-              <p className="text-[11px] text-gray-500 mt-0.5">Requires site dispatch</p>
+              <p className="text-[11px] text-gray-500 mt-0.5">{lang === 'hi' ? 'स्थल प्रेषण आवश्यक' : 'Requires site dispatch'}</p>
             </div>
             <div className="w-12 h-12 rounded-2xl bg-amber-100 text-amber-700 flex items-center justify-center shadow-inner">
               <Clock size={24} />
@@ -175,10 +178,10 @@ export default function AdminPage() {
           <div className="clay-card-3d p-6 border-l-4 border-l-blue-500 flex items-center justify-between">
             <div>
               <p className="text-xs font-black text-blue-800 uppercase tracking-wider">
-                Under Action
+                {lang === 'hi' ? 'सफाई प्रगति पर' : 'Under Action'}
               </p>
               <p className="text-3xl font-black text-gray-900 mt-1">{statusCounts.reviewed}</p>
-              <p className="text-[11px] text-gray-500 mt-0.5">Tipper crew en route</p>
+              <p className="text-[11px] text-gray-500 mt-0.5">{lang === 'hi' ? 'टिपर दल रवाना' : 'Tipper crew en route'}</p>
             </div>
             <div className="w-12 h-12 rounded-2xl bg-blue-100 text-blue-700 flex items-center justify-center shadow-inner">
               <Eye size={24} />
@@ -188,10 +191,10 @@ export default function AdminPage() {
           <div className="clay-card-3d p-6 border-l-4 border-l-emerald-500 flex items-center justify-between">
             <div>
               <p className="text-xs font-black text-emerald-800 uppercase tracking-wider">
-                Resolved & Verified
+                {t.resolvedVerified}
               </p>
               <p className="text-3xl font-black text-gray-900 mt-1">{statusCounts.resolved}</p>
-              <p className="text-[11px] text-gray-500 mt-0.5">Blackspots completely cleaned</p>
+              <p className="text-[11px] text-gray-500 mt-0.5">{lang === 'hi' ? 'पूर्ण सफाई सत्यापित' : 'Blackspots completely cleaned'}</p>
             </div>
             <div className="w-12 h-12 rounded-2xl bg-emerald-100 text-emerald-700 flex items-center justify-center shadow-inner">
               <CheckCircle2 size={24} />
@@ -203,30 +206,30 @@ export default function AdminPage() {
         <div className="clay-card-3d p-6 sm:p-8 space-y-6">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-gray-200/80 pb-4">
             <h2 className="text-lg font-black text-gray-900">
-              Live Dump Incident Triage Queue ({reports.length})
+              {t.incidentManagement} ({reports.length})
             </h2>
             <div className="flex items-center gap-2">
               <Filter size={15} className="text-gray-400" />
-              <span className="text-xs font-bold text-gray-500">Real-Time Municipal Feed</span>
+              <span className="text-xs font-bold text-gray-500">{lang === 'hi' ? 'लाइव नगरपालिका फीड' : 'Real-Time Municipal Feed'}</span>
             </div>
           </div>
 
           {reports.length === 0 ? (
             <div className="py-12 text-center text-gray-400 space-y-2">
               <ImageIcon size={36} className="mx-auto opacity-50" />
-              <p className="font-bold text-gray-700">No dump reports registered yet.</p>
+              <p className="font-bold text-gray-700">{lang === 'hi' ? 'अभी तक कोई रिपोर्ट दर्ज नहीं हुई।' : 'No dump reports registered yet.'}</p>
             </div>
           ) : (
             <div className="overflow-x-auto">
               <table className="w-full text-xs text-left" aria-label="Incident Triage Table">
                 <thead>
                   <tr className="border-b border-gray-200 text-gray-500 font-extrabold uppercase tracking-wider text-[10px]">
-                    <th className="py-3 px-3">Evidence</th>
-                    <th className="py-3 px-3">Reporter & Time</th>
-                    <th className="py-3 px-3">Category & Severity</th>
-                    <th className="py-3 px-3">Coordinates</th>
-                    <th className="py-3 px-3">Status</th>
-                    <th className="py-3 px-3 text-right">Update Action</th>
+                    <th className="py-3 px-3">{lang === 'hi' ? 'प्रमाण फोटो' : 'Evidence'}</th>
+                    <th className="py-3 px-3">{lang === 'hi' ? 'नागरिक एवं समय' : 'Reporter & Time'}</th>
+                    <th className="py-3 px-3">{lang === 'hi' ? 'श्रेणी एवं गंभीरता' : 'Category & Severity'}</th>
+                    <th className="py-3 px-3">{lang === 'hi' ? 'स्थान एवं टिपर' : 'Coordinates'}</th>
+                    <th className="py-3 px-3">{t.status}</th>
+                    <th className="py-3 px-3 text-right">{t.action}</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-100 font-medium text-gray-800">
@@ -246,7 +249,7 @@ export default function AdminPage() {
                             />
                             {r.resolvedPhotoDataUrl && (
                               <span className="absolute -top-1 -right-1 bg-emerald-500 text-white text-[8px] font-black px-1 rounded-full">
-                                ✓ Proof
+                                ✓ {lang === 'hi' ? 'प्रमाण' : 'Proof'}
                               </span>
                             )}
                           </div>
@@ -258,10 +261,15 @@ export default function AdminPage() {
                           <p className="text-gray-500 text-[10px] truncate max-w-[180px]">
                             {r.description}
                           </p>
+                          {r.address && (
+                            <p className="text-emerald-800 text-[9px] font-medium truncate max-w-[180px]">
+                              📍 {r.address}
+                            </p>
+                          )}
                           {r.audioDataUrl && (
                             <div className="flex items-center gap-1 text-emerald-700 text-[10px] font-bold mt-1">
                               <Volume2 size={12} />
-                              <span>Voice Landmark Available</span>
+                              <span>{lang === 'hi' ? 'वॉयस नोट उपलब्ध' : 'Voice Landmark Available'}</span>
                             </div>
                           )}
                         </td>
@@ -317,7 +325,7 @@ export default function AdminPage() {
                                 : 'bg-amber-100 text-amber-800'
                             }`}
                           >
-                            {r.status.toUpperCase()}
+                            {r.status === 'resolved' ? (lang === 'hi' ? 'समाधानित' : 'RESOLVED') : r.status === 'reviewed' ? (lang === 'hi' ? 'प्रगति पर' : 'REVIEWED') : (lang === 'hi' ? 'लंबित' : 'PENDING')}
                           </span>
                         </td>
 
@@ -331,9 +339,9 @@ export default function AdminPage() {
                             className="bg-white border border-gray-300 rounded-xl px-2 py-1 text-xs font-bold focus:outline-none focus:ring-2 focus:ring-emerald-500"
                             aria-label={`Change status for incident ${r.id}`}
                           >
-                            <option value="pending">🟡 Pending</option>
-                            <option value="reviewed">🔵 Under Action</option>
-                            <option value="resolved">🟢 Cleaned & Verified</option>
+                            <option value="pending">🟡 {lang === 'hi' ? 'लंबित' : 'Pending'}</option>
+                            <option value="reviewed">🔵 {lang === 'hi' ? 'सफाई प्रगति पर' : 'Under Action'}</option>
+                            <option value="resolved">🟢 {lang === 'hi' ? 'सत्यापित व साफ' : 'Cleaned & Verified'}</option>
                           </select>
                         </td>
                       </tr>
@@ -349,47 +357,59 @@ export default function AdminPage() {
           <div className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-50 px-4">
             <div className="clay-card-3d bg-white p-6 sm:p-8 max-w-lg w-full shadow-2xl space-y-5">
               <div className="flex items-center justify-between border-b border-gray-200 pb-3">
-                <div className="flex items-center gap-2">
-                  <CheckCheck size={20} className="text-emerald-700" />
-                  <h3 className="font-black text-base text-gray-900">
-                    Verify & Close Blackspot Ticket
-                  </h3>
-                </div>
+                <h3 className="font-black text-lg text-gray-900 flex items-center gap-2">
+                  <CheckCheck size={20} className="text-emerald-600" />
+                  <span>{t.verifyCleanupBtn}</span>
+                </h3>
                 <button
                   onClick={() => setResolvingReport(null)}
-                  className="text-gray-400 hover:text-gray-600"
+                  className="text-gray-400 hover:text-gray-600 p-1"
                 >
                   <X size={18} />
                 </button>
               </div>
 
-              {/* Before vs After Photos */}
+              {/* Before & After Comparison Grid */}
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <p className="text-[11px] font-black text-gray-700 mb-1">📸 Before (Citizen Photo):</p>
+                  <span className="text-[10px] font-black uppercase text-amber-800 bg-amber-100 px-2 py-0.5 rounded-full block text-center mb-1.5">
+                    {t.beforeCleanup}
+                  </span>
                   <img
                     src={resolvingReport.photoDataUrl}
-                    alt="Before dump site"
-                    className="w-full h-32 object-cover rounded-xl border border-gray-200"
+                    alt="Before cleanup"
+                    className="w-full h-32 object-cover rounded-2xl border border-amber-200"
                   />
                 </div>
+
                 <div>
-                  <p className="text-[11px] font-black text-emerald-800 mb-1">✨ After (Cleanup Proof):</p>
+                  <span className="text-[10px] font-black uppercase text-emerald-800 bg-emerald-100 px-2 py-0.5 rounded-full block text-center mb-1.5">
+                    {t.afterCleanup}
+                  </span>
                   {resolvedProofPhoto ? (
-                    <img
-                      src={resolvedProofPhoto}
-                      alt="After cleanup proof"
-                      className="w-full h-32 object-cover rounded-xl border-2 border-emerald-400"
-                    />
+                    <div className="relative">
+                      <img
+                        src={resolvedProofPhoto}
+                        alt="After cleanup proof"
+                        className="w-full h-32 object-cover rounded-2xl border-2 border-emerald-400"
+                      />
+                      <button
+                        onClick={() => setResolvedProofPhoto(null)}
+                        className="absolute top-1 right-1 bg-red-600 text-white p-1 rounded-full text-xs"
+                      >
+                        <X size={12} />
+                      </button>
+                    </div>
                   ) : (
-                    <button
-                      type="button"
+                    <div
                       onClick={() => fileRef.current?.click()}
-                      className="w-full h-32 border-2 border-dashed border-emerald-300 rounded-xl flex flex-col items-center justify-center gap-1 text-emerald-800 bg-emerald-50 hover:bg-emerald-100 transition text-xs font-bold"
+                      className="w-full h-32 rounded-2xl border-2 border-dashed border-emerald-300 bg-emerald-50/50 flex flex-col items-center justify-center cursor-pointer hover:bg-emerald-50 transition"
                     >
-                      <Camera size={20} />
-                      <span>Upload Proof Photo</span>
-                    </button>
+                      <Camera size={24} className="text-emerald-600 mb-1" />
+                      <span className="text-[10px] font-bold text-emerald-800 text-center px-2">
+                        {t.uploadAfterPhoto}
+                      </span>
+                    </div>
                   )}
                   <input
                     ref={fileRef}
@@ -402,89 +422,53 @@ export default function AdminPage() {
               </div>
 
               <div>
-                <label className="block text-xs font-bold text-gray-700 mb-1">
-                  Ward Officer Resolution Notes:
+                <label className="text-xs font-bold text-gray-700 block mb-1">
+                  {lang === 'hi' ? 'अधिकारी का सत्यापन नोट:' : 'Officer Resolution Notes:'}
                 </label>
-                <input
-                  type="text"
+                <textarea
                   value={adminNoteInput}
                   onChange={(e) => setAdminNoteInput(e.target.value)}
-                  placeholder="E.g., Tipper KA-33-1042 cleared 150kg waste and disinfected the area."
-                  className="w-full p-2.5 bg-gray-50 border border-gray-300 rounded-xl text-xs"
+                  placeholder={lang === 'hi' ? 'उदा. टिपर दल द्वारा 250 किलोग्राम मलबा हटाया गया और कीटाणुरहित किया गया।' : 'E.g., 250kg debris removed by Tipper Crew KA-33-E-1042 and disinfected.'}
+                  rows={2}
+                  className="w-full p-3 text-xs rounded-xl border border-gray-300 focus:ring-2 focus:ring-emerald-500 focus:outline-none"
                 />
               </div>
 
-              <div className="flex gap-2 justify-end pt-2">
-                <button
-                  onClick={() => setResolvingReport(null)}
-                  className="px-4 py-2 text-xs font-bold text-gray-600 bg-gray-100 rounded-xl"
-                >
-                  Cancel
-                </button>
+              <div className="flex gap-2 pt-2">
                 <button
                   onClick={handleResolveWithProof}
-                  className="clay-btn-green text-white px-5 py-2 text-xs font-black shadow-md"
+                  className="flex-1 clay-btn-green text-white font-extrabold text-xs py-3 rounded-xl shadow-md"
                 >
-                  Confirm Resolution & Credit Citizen
+                  {t.markAsResolved}
+                </button>
+                <button
+                  onClick={() => setResolvingReport(null)}
+                  className="px-4 py-3 rounded-xl border border-gray-300 text-xs font-bold text-gray-700 hover:bg-gray-100"
+                >
+                  {t.cancel}
                 </button>
               </div>
             </div>
           </div>
         )}
 
-        {/* ── Status Confirmation Modal ── */}
-        {confirmAction && (
-          <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 px-4">
-            <div className="clay-card-3d bg-white p-6 max-w-sm w-full shadow-2xl space-y-4">
-              <div className="w-12 h-12 rounded-2xl bg-amber-100 text-amber-700 flex items-center justify-center mx-auto">
-                <AlertTriangle size={24} />
-              </div>
-              <div className="text-center">
-                <h3 className="font-extrabold text-base text-gray-900">Confirm Status Change</h3>
-                <p className="text-xs text-gray-500 mt-1">
-                  Update this dump incident to{' '}
-                  <span className="font-black text-emerald-700 uppercase">
-                    {confirmAction.status}
-                  </span>
-                  ?
-                </p>
-              </div>
-              <div className="flex gap-2 justify-center pt-2">
-                <button
-                  onClick={() => setConfirmAction(null)}
-                  className="px-4 py-2 text-xs font-bold text-gray-600 bg-gray-100 hover:bg-gray-200 rounded-xl transition"
-                >
-                  Cancel
-                </button>
-                <button
-                  onClick={confirmStatusChange}
-                  className="clay-btn-green text-white px-5 py-2 text-xs font-black shadow-md"
-                >
-                  Confirm Update
-                </button>
-              </div>
-            </div>
-          </div>
-        )}
-
-        {/* ── Image Lightbox ── */}
+        {/* ── Photo Lightbox Modal ── */}
         {lightboxImg && (
           <div
             className="fixed inset-0 bg-black/80 backdrop-blur-md flex items-center justify-center z-50 p-4"
             onClick={() => setLightboxImg(null)}
           >
-            <div className="relative max-w-2xl w-full" onClick={(e) => e.stopPropagation()}>
+            <div className="relative max-w-2xl w-full">
               <img
                 src={lightboxImg}
-                alt="Full resolution dump evidence"
-                className="w-full max-h-[80vh] object-contain rounded-2xl border-2 border-white/20 shadow-2xl"
+                alt="Enlarged dump evidence"
+                className="w-full max-h-[80vh] object-contain rounded-3xl shadow-2xl border border-white/20"
               />
               <button
                 onClick={() => setLightboxImg(null)}
-                className="absolute top-3 right-3 w-8 h-8 rounded-full bg-black/60 text-white flex items-center justify-center hover:bg-black"
-                aria-label="Close image preview"
+                className="absolute top-4 right-4 bg-white/20 hover:bg-white/40 text-white p-2 rounded-full backdrop-blur-md transition"
               >
-                <X size={18} />
+                <X size={20} />
               </button>
             </div>
           </div>

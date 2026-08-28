@@ -10,7 +10,7 @@ export type WasteCategory =
 
 export type ReportSeverity = 'low' | 'medium' | 'high' | 'critical';
 
-export type Language = 'en' | 'hi' | 'kn';
+export type Language = 'en' | 'hi';
 
 export interface User {
   id: string;
@@ -35,6 +35,8 @@ export interface Report {
   resolvedPhotoDataUrl?: string; // "After Cleanup" evidence
   lat: number;
   lng: number;
+  address?: string; // Live geocoded street address
+  accuracy?: number; // GPS accuracy in meters
   description: string;
   wasteCategory: WasteCategory;
   severity: ReportSeverity;

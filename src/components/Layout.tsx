@@ -4,7 +4,6 @@ import { useRouter } from 'next/router';
 import { getCurrentUser, logoutUser } from '@/lib/store';
 import type { User } from '@/lib/types';
 import {
-  Recycle,
   LayoutDashboard,
   Camera,
   MapPin,
@@ -12,10 +11,10 @@ import {
   LogOut,
   Menu,
   X,
-  Award,
   Leaf,
-  Sparkles,
+  Globe,
 } from 'lucide-react';
+import { useLanguage } from '@/lib/translations';
 
 const BADGE_EMOJI: Record<string, string> = {
   none: '🌱',
@@ -24,18 +23,13 @@ const BADGE_EMOJI: Record<string, string> = {
   hero: '🌟',
 };
 
-const NAV_ITEMS = [
-  { href: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
-  { href: '/report', label: 'Report Dump', icon: Camera },
-  { href: '/facilities', label: 'Facilities', icon: MapPin },
-];
-
 export default function Layout({ children }: { children: React.ReactNode }) {
   const router = useRouter();
+  const { lang, setLang, t } = useLanguage();
+
   const [user, setUser] = useState<User | null>(null);
   const [menuOpen, setMenuOpen] = useState(false);
   const [mounted, setMounted] = useState(false);
-  const [lang, setLang] = useState<'en' | 'hi' | 'kn'>('en');
 
   useEffect(() => {
     setMounted(true);
@@ -52,7 +46,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
     router.replace('/login');
   };
 
-  // Loading skeleton to prevent auth flash
+  // Loading skeleton
   if (!mounted || !user) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-[#faf8f4]">
@@ -61,7 +55,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
             <Leaf size={18} />
           </div>
           <span className="font-extrabold text-sm tracking-tight text-gray-800">
-            Loading SwachhApp 3D Portal…
+            {t.loading}
           </span>
         </div>
       </div>
@@ -70,9 +64,11 @@ export default function Layout({ children }: { children: React.ReactNode }) {
 
   const isAdmin = user.role === 'admin' || user.role === 'ward_officer';
 
-  const allNavItems = [
-    ...NAV_ITEMS,
-    ...(isAdmin ? [{ href: '/admin', label: 'Admin', icon: Shield }] : []),
+  const navItems = [
+    { href: '/dashboard', label: t.navDashboard, icon: LayoutDashboard },
+    { href: '/report', label: t.navReport, icon: Camera },
+    { href: '/facilities', label: t.navFacilities, icon: MapPin },
+    ...(isAdmin ? [{ href: '/admin', label: t.navAdmin, icon: Shield }] : []),
   ];
 
   return (
@@ -104,13 +100,13 @@ export default function Layout({ children }: { children: React.ReactNode }) {
               <Leaf size={20} className="drop-shadow-sm rotate-[-12deg]" />
             </div>
             <span className="font-extrabold text-lg tracking-tight text-emerald-950">
-              Swachh<span className="text-emerald-600">App</span>
+              {t.brandName}
             </span>
           </Link>
 
           {/* Desktop Nav Items */}
           <nav className="hidden md:flex items-center gap-1 bg-black/[0.03] p-1 rounded-full border border-black/[0.04]">
-            {allNavItems.map((item) => {
+            {navItems.map((item) => {
               const active = router.pathname === item.href;
               return (
                 <Link
@@ -128,27 +124,33 @@ export default function Layout({ children }: { children: React.ReactNode }) {
             })}
           </nav>
 
-          {/* User Profile Pill & Language Selector */}
+          {/* User Profile Pill & Bilingual Language Selector (EN / हिन्दी) */}
           <div className="hidden md:flex items-center gap-2.5">
-            {/* Quick Language Toggle */}
-            <div className="flex items-center bg-white/80 border border-gray-200 rounded-full p-0.5 text-[10px] font-black text-gray-600">
+            {/* Quick Language Toggle: English / Hindi */}
+            <div className="flex items-center bg-white/90 border border-gray-200/90 rounded-full p-0.5 text-[11px] font-black text-gray-700 shadow-inner">
               <button
+                type="button"
                 onClick={() => setLang('en')}
-                className={`px-2 py-0.5 rounded-full transition ${lang === 'en' ? 'bg-emerald-600 text-white' : 'hover:text-emerald-800'}`}
+                className={`px-2.5 py-1 rounded-full transition-all duration-150 ${
+                  lang === 'en'
+                    ? 'bg-emerald-600 text-white shadow-sm'
+                    : 'text-gray-600 hover:text-emerald-800'
+                }`}
+                title="English"
               >
                 EN
               </button>
               <button
+                type="button"
                 onClick={() => setLang('hi')}
-                className={`px-2 py-0.5 rounded-full transition ${lang === 'hi' ? 'bg-emerald-600 text-white' : 'hover:text-emerald-800'}`}
+                className={`px-2.5 py-1 rounded-full transition-all duration-150 ${
+                  lang === 'hi'
+                    ? 'bg-emerald-600 text-white shadow-sm'
+                    : 'text-gray-600 hover:text-emerald-800'
+                }`}
+                title="हिन्दी (Hindi)"
               >
                 हिन्दी
-              </button>
-              <button
-                onClick={() => setLang('kn')}
-                className={`px-2 py-0.5 rounded-full transition ${lang === 'kn' ? 'bg-emerald-600 text-white' : 'hover:text-emerald-800'}`}
-              >
-                ಕನ್ನಡ
               </button>
             </div>
 
@@ -164,22 +166,32 @@ export default function Layout({ children }: { children: React.ReactNode }) {
 
             <button
               onClick={handleLogout}
+              title={t.navLogout}
               className="flex items-center gap-1 px-3 py-1.5 rounded-full text-xs font-bold text-gray-600 hover:text-red-700 hover:bg-red-50 transition-all"
             >
               <LogOut size={13} />
             </button>
           </div>
 
-
           {/* Mobile hamburger */}
-          <button
-            className="md:hidden w-9 h-9 rounded-xl bg-white/80 border border-gray-200 flex items-center justify-center text-gray-700 hover:text-emerald-700"
-            onClick={() => setMenuOpen(!menuOpen)}
-            aria-expanded={menuOpen}
-            aria-label={menuOpen ? 'Close menu' : 'Open menu'}
-          >
-            {menuOpen ? <X size={20} /> : <Menu size={20} />}
-          </button>
+          <div className="md:hidden flex items-center gap-2">
+            <button
+              type="button"
+              onClick={() => setLang(lang === 'en' ? 'hi' : 'en')}
+              className="px-2 py-1 rounded-lg bg-emerald-100 text-emerald-900 text-xs font-bold flex items-center gap-1"
+            >
+              <Globe size={13} />
+              <span>{lang === 'en' ? 'हिन्दी' : 'EN'}</span>
+            </button>
+            <button
+              className="w-9 h-9 rounded-xl bg-white/80 border border-gray-200 flex items-center justify-center text-gray-700 hover:text-emerald-700"
+              onClick={() => setMenuOpen(!menuOpen)}
+              aria-expanded={menuOpen}
+              aria-label={menuOpen ? 'Close menu' : 'Open menu'}
+            >
+              {menuOpen ? <X size={20} /> : <Menu size={20} />}
+            </button>
+          </div>
         </header>
 
         {/* Mobile dropdown */}
@@ -201,11 +213,27 @@ export default function Layout({ children }: { children: React.ReactNode }) {
                     </span>
                   </div>
                 </div>
+
+                {/* Mobile Language Switcher */}
+                <div className="flex items-center bg-white border border-gray-200 rounded-full p-0.5 text-xs font-bold">
+                  <button
+                    onClick={() => setLang('en')}
+                    className={`px-2.5 py-1 rounded-full ${lang === 'en' ? 'bg-emerald-600 text-white' : 'text-gray-600'}`}
+                  >
+                    EN
+                  </button>
+                  <button
+                    onClick={() => setLang('hi')}
+                    className={`px-2.5 py-1 rounded-full ${lang === 'hi' ? 'bg-emerald-600 text-white' : 'text-gray-600'}`}
+                  >
+                    हिन्दी
+                  </button>
+                </div>
               </div>
 
               {/* Links */}
               <nav className="space-y-1">
-                {allNavItems.map((item) => {
+                {navItems.map((item) => {
                   const active = router.pathname === item.href;
                   return (
                     <Link
@@ -228,7 +256,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
                 onClick={handleLogout}
                 className="w-full flex items-center justify-center gap-2 py-3 text-sm font-bold text-red-600 hover:bg-red-50 rounded-2xl transition border border-red-100"
               >
-                <LogOut size={16} /> Logout
+                <LogOut size={16} /> {t.navLogout}
               </button>
             </div>
           </>
@@ -247,10 +275,10 @@ export default function Layout({ children }: { children: React.ReactNode }) {
             <div className="w-5 h-5 rounded-lg bg-emerald-600 text-white flex items-center justify-center text-[10px] font-black">
               S
             </div>
-            <span className="font-bold text-gray-800">SwachhApp 3D Spatial Platform</span>
-            <span>• Smart India Hackathon 2026</span>
+            <span className="font-bold text-gray-800">{t.brandName} • {t.tagline}</span>
+            <span>• {t.sihBadge}</span>
           </div>
-          <p>© 2026 Ministry of Housing & Urban Affairs & SIH. All rights reserved.</p>
+          <p>© 2026 {t.brandName}. All rights reserved.</p>
         </div>
       </footer>
     </div>

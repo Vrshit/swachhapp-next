@@ -2,10 +2,13 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/router';
 import Link from 'next/link';
 import { loginUser, registerUser, getCurrentUser, ensureDemoAccounts } from '@/lib/store';
-import { Mail, Lock, User, ArrowRight, Eye, EyeOff, Zap, Shield, Sparkles } from 'lucide-react';
+import { Mail, Lock, User, ArrowRight, Eye, EyeOff, Zap, Shield, Sparkles, Globe } from 'lucide-react';
+import { useLanguage } from '@/lib/translations';
 
 export default function LoginPage() {
   const router = useRouter();
+  const { lang, setLang, t } = useLanguage();
+
   const [isLogin, setIsLogin] = useState(true);
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
@@ -57,7 +60,31 @@ export default function LoginPage() {
       <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-emerald-300/30 rounded-full blur-3xl pointer-events-none" />
       <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-green-400/20 rounded-full blur-3xl pointer-events-none" />
 
-      <div className="clay-card-3d w-full max-w-md p-8 sm:p-10 relative z-10 space-y-6">
+      {/* Top Language Toggle */}
+      <div className="absolute top-6 right-6 z-20">
+        <div className="flex items-center bg-white/90 border border-gray-200 rounded-full p-0.5 text-xs font-black shadow-sm">
+          <button
+            type="button"
+            onClick={() => setLang('en')}
+            className={`px-3 py-1 rounded-full transition-all ${
+              lang === 'en' ? 'bg-emerald-600 text-white shadow-sm' : 'text-gray-600 hover:text-emerald-800'
+            }`}
+          >
+            EN
+          </button>
+          <button
+            type="button"
+            onClick={() => setLang('hi')}
+            className={`px-3 py-1 rounded-full transition-all ${
+              lang === 'hi' ? 'bg-emerald-600 text-white shadow-sm' : 'text-gray-600 hover:text-emerald-800'
+            }`}
+          >
+            हिन्दी
+          </button>
+        </div>
+      </div>
+
+      <div className="clay-card-3d w-full max-w-md p-8 sm:p-10 relative z-10 space-y-6 bg-white">
         {/* Header */}
         <div className="text-center space-y-2">
           <Link href="/" className="inline-flex items-center gap-2 group">
@@ -67,10 +94,16 @@ export default function LoginPage() {
           </Link>
           <div>
             <h1 className="text-2xl sm:text-3xl font-black text-gray-900 tracking-tight">
-              SwachhApp
+              {t.brandName}
             </h1>
             <p className="text-xs sm:text-sm font-semibold text-gray-500 mt-0.5">
-              {isLogin ? 'Sign in to access your civic dashboard' : 'Join India’s Green Champion Network'}
+              {isLogin
+                ? lang === 'hi'
+                  ? 'नागरिक पोर्टल में प्रवेश के लिए लॉगिन करें'
+                  : 'Sign in to access your civic dashboard'
+                : lang === 'hi'
+                ? 'भारत के हरित चैंपियन नेटवर्क से जुड़ें'
+                : 'Join India’s Green Champion Network'}
             </p>
           </div>
         </div>
@@ -80,7 +113,7 @@ export default function LoginPage() {
           <div className="flex items-center justify-between">
             <span className="text-[11px] font-black uppercase tracking-wider text-emerald-800 flex items-center gap-1.5">
               <Zap size={13} className="text-amber-500 fill-amber-500" />
-              <span>SIH Judge 1-Click Access</span>
+              <span>{lang === 'hi' ? '1-क्लिक त्वरित डेमो लॉगिन' : 'SIH Judge 1-Click Access'}</span>
             </span>
             <span className="text-[10px] font-bold text-emerald-700 bg-emerald-200/70 px-2 py-0.5 rounded-full">
               Demo Active
@@ -93,7 +126,7 @@ export default function LoginPage() {
               onClick={() => handleDemoLogin('citizen@demo.in', 'demo1234')}
               className="text-xs font-bold bg-white text-gray-800 hover:text-emerald-700 px-3 py-2.5 rounded-xl border border-emerald-200 hover:border-emerald-400 shadow-sm transition flex items-center justify-center gap-1.5"
             >
-              <span>👤 Citizen Demo</span>
+              <span>👤 {lang === 'hi' ? 'नागरिक डेमो' : 'Citizen Demo'}</span>
             </button>
             <button
               type="button"
@@ -101,7 +134,7 @@ export default function LoginPage() {
               className="text-xs font-bold bg-white text-gray-800 hover:text-emerald-700 px-3 py-2.5 rounded-xl border border-emerald-200 hover:border-emerald-400 shadow-sm transition flex items-center justify-center gap-1.5"
             >
               <Shield size={13} className="text-emerald-600" />
-              <span>Admin Demo</span>
+              <span>{lang === 'hi' ? 'प्रशासक डेमो' : 'Admin Demo'}</span>
             </button>
           </div>
         </div>
@@ -109,8 +142,8 @@ export default function LoginPage() {
         {/* Divider */}
         <div className="relative flex items-center justify-center">
           <div className="border-t border-gray-200 w-full" />
-          <span className="bg-[#faf8f4] px-3 text-[11px] font-bold text-gray-400 uppercase tracking-widest absolute">
-            or credentials
+          <span className="bg-white px-3 text-[11px] font-bold text-gray-400 uppercase tracking-widest absolute">
+            {lang === 'hi' ? 'या ईमेल द्वारा' : 'or credentials'}
           </span>
         </div>
 
@@ -118,12 +151,14 @@ export default function LoginPage() {
         <form onSubmit={handleSubmit} className="space-y-4">
           {!isLogin && (
             <div>
-              <label className="block text-xs font-extrabold text-gray-700 mb-1.5">Full Name</label>
+              <label className="block text-xs font-extrabold text-gray-700 mb-1.5">
+                {lang === 'hi' ? 'पूरा नाम' : 'Full Name'}
+              </label>
               <div className="relative">
                 <User size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400" />
                 <input
                   type="text"
-                  placeholder="E.g., Harsha Vardhan"
+                  placeholder={lang === 'hi' ? 'उदा. हर्ष वर्धन' : 'E.g., Harsha Vardhan'}
                   value={name}
                   onChange={(e) => setName(e.target.value)}
                   required={!isLogin}
@@ -134,7 +169,9 @@ export default function LoginPage() {
           )}
 
           <div>
-            <label className="block text-xs font-extrabold text-gray-700 mb-1.5">Email Address</label>
+            <label className="block text-xs font-extrabold text-gray-700 mb-1.5">
+              {lang === 'hi' ? 'ईमेल पता' : 'Email Address'}
+            </label>
             <div className="relative">
               <Mail size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400" />
               <input
@@ -149,7 +186,9 @@ export default function LoginPage() {
           </div>
 
           <div>
-            <label className="block text-xs font-extrabold text-gray-700 mb-1.5">Password</label>
+            <label className="block text-xs font-extrabold text-gray-700 mb-1.5">
+              {lang === 'hi' ? 'पासवर्ड' : 'Password'}
+            </label>
             <div className="relative">
               <Lock size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400" />
               <input
@@ -186,7 +225,15 @@ export default function LoginPage() {
               <span className="w-5 h-5 border-2 border-white/40 border-t-white rounded-full animate-spin" />
             ) : (
               <>
-                <span>{isLogin ? 'Sign In' : 'Create Champion Profile'}</span>
+                <span>
+                  {isLogin
+                    ? lang === 'hi'
+                      ? 'लॉगिन करें'
+                      : 'Sign In'
+                    : lang === 'hi'
+                    ? 'खाता बनाएं'
+                    : 'Create Champion Profile'}
+                </span>
                 <ArrowRight size={16} />
               </>
             )}
@@ -196,7 +243,13 @@ export default function LoginPage() {
         {/* Footer switch */}
         <div className="text-center text-xs font-bold text-gray-500 space-y-3 pt-2">
           <p>
-            {isLogin ? "Don't have a profile yet? " : 'Already registered? '}
+            {isLogin
+              ? lang === 'hi'
+                ? 'खाता नहीं है? '
+                : "Don't have a profile yet? "
+              : lang === 'hi'
+              ? 'पहले से पंजीकृत हैं? '
+              : 'Already registered? '}
             <button
               type="button"
               onClick={() => {
@@ -205,16 +258,21 @@ export default function LoginPage() {
               }}
               className="text-emerald-700 hover:underline font-extrabold"
             >
-              {isLogin ? 'Create one now' : 'Sign In'}
+              {isLogin
+                ? lang === 'hi'
+                  ? 'नया खाता बनाएं'
+                  : 'Create one now'
+                : lang === 'hi'
+                ? 'लॉगिन करें'
+                : 'Sign In'}
             </button>
           </p>
 
           <Link href="/" className="inline-block text-gray-400 hover:text-gray-700">
-            ← Return to Landing Page
+            ← {lang === 'hi' ? 'मुख्य पृष्ठ पर लौटें' : 'Return to Landing Page'}
           </Link>
         </div>
       </div>
     </div>
   );
 }
-

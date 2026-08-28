@@ -32,47 +32,50 @@ import {
   TrendingUp,
 } from 'lucide-react';
 import Link from 'next/link';
-
-const BADGE_META: Record<
-  string,
-  { label: string; color: string; bg: string; border: string; desc: string }
-> = {
-  none: {
-    label: 'Citizen Champion',
-    color: 'text-emerald-700',
-    bg: 'bg-emerald-50',
-    border: 'border-emerald-200',
-    desc: 'Level 1: Verified citizen reporter active',
-  },
-  reporter: {
-    label: '🏅 Active Reporter',
-    color: 'text-blue-800',
-    bg: 'bg-blue-50',
-    border: 'border-blue-200',
-    desc: 'Level 1: Verified dump reporting active',
-  },
-  champion: {
-    label: '🏆 Green Champion',
-    color: 'text-amber-800',
-    bg: 'bg-amber-50',
-    border: 'border-amber-200',
-    desc: 'Level 2: 5+ verified reports filed',
-  },
-  hero: {
-    label: '🌟 Swachh Bharat Hero',
-    color: 'text-emerald-900',
-    bg: 'bg-emerald-100',
-    border: 'border-emerald-300',
-    desc: 'Top Tier: 10+ verified municipal cleanups',
-  },
-};
+import { useLanguage } from '@/lib/translations';
 
 export default function DashboardPage() {
+  const { t, lang } = useLanguage();
+
   const [user, setUser] = useState<User | null>(null);
   const [reports, setReports] = useState<Report[]>([]);
   const [redeemed, setRedeemed] = useState<RewardVoucher[]>([]);
   const [selectedReward, setSelectedReward] = useState<RewardVoucher | null>(null);
   const [rewardMsg, setRewardMsg] = useState<string | null>(null);
+
+  const BADGE_META: Record<
+    string,
+    { label: string; color: string; bg: string; border: string; desc: string }
+  > = {
+    none: {
+      label: lang === 'hi' ? 'नागरिक चैंपियन' : 'Citizen Champion',
+      color: 'text-emerald-700',
+      bg: 'bg-emerald-50',
+      border: 'border-emerald-200',
+      desc: lang === 'hi' ? 'स्तर 1: सक्रिय नागरिक रिपोर्टर' : 'Level 1: Verified citizen reporter active',
+    },
+    reporter: {
+      label: lang === 'hi' ? '🏅 सक्रिय रिपोर्टर' : '🏅 Active Reporter',
+      color: 'text-blue-800',
+      bg: 'bg-blue-50',
+      border: 'border-blue-200',
+      desc: lang === 'hi' ? 'स्तर 1: सत्यापित डंप रिपोर्टिंग सक्रिय' : 'Level 1: Verified dump reporting active',
+    },
+    champion: {
+      label: lang === 'hi' ? '🏆 हरित चैंपियन' : '🏆 Green Champion',
+      color: 'text-amber-800',
+      bg: 'bg-amber-50',
+      border: 'border-amber-200',
+      desc: lang === 'hi' ? 'स्तर 2: 5+ सत्यापित रिपोर्ट दर्ज' : 'Level 2: 5+ verified reports filed',
+    },
+    hero: {
+      label: lang === 'hi' ? '🌟 स्वच्छ भारत हीरो' : '🌟 Swachh Bharat Hero',
+      color: 'text-emerald-900',
+      bg: 'bg-emerald-100',
+      border: 'border-emerald-300',
+      desc: lang === 'hi' ? 'शीर्ष स्तर: 10+ सत्यापित नगरपालिका सफाई' : 'Top Tier: 10+ verified municipal cleanups',
+    },
+  };
 
   useEffect(() => {
     setUser(getCurrentUser());
@@ -100,7 +103,11 @@ export default function DashboardPage() {
       redeemReward(reward);
       setRedeemed(getRedeemedRewards());
       setSelectedReward(reward);
-      setRewardMsg(`🎉 Voucher Claimed! Your code is ready.`);
+      setRewardMsg(
+        lang === 'hi'
+          ? `🎉 वाउचर प्राप्त हुआ! आपका कोड उपयोग के लिए तैयार है।`
+          : `🎉 Voucher Claimed! Your code is ready.`
+      );
     } catch (err: any) {
       setRewardMsg(err.message || 'Unable to redeem voucher.');
     }
@@ -119,20 +126,21 @@ export default function DashboardPage() {
             <div className="space-y-3 max-w-2xl">
               <div className="inline-flex items-center gap-2 text-xs font-black uppercase tracking-widest text-emerald-900 bg-emerald-100 px-3.5 py-1.5 rounded-full border border-emerald-300 shadow-sm">
                 <Sparkles size={14} className="text-emerald-700 animate-pulse" />
-                <span>Civic Impact Portal • Live Active</span>
+                <span>{t.civicImpactPortal}</span>
               </div>
               <h1 className="text-3xl sm:text-4xl lg:text-5xl font-black tracking-tight text-gray-900 leading-tight">
-                Welcome, <span className="text-emerald-700">{user.name}</span>! 👋
+                {t.welcomeUser}, <span className="text-emerald-700">{user.name}</span>! 👋
               </h1>
               <p className="text-gray-600 text-sm sm:text-base leading-relaxed">
-                Track your active dump site dispatches, monitor municipal tipper response times, and
-                earn verified Civic Points toward your city's Green Champion leaderboard.
+                {lang === 'hi'
+                  ? 'अपनी सक्रिय डंप रिपोर्टों को ट्रैक करें, टिपर प्रतिक्रिया समय की निगरानी करें और हरित पुरस्कार प्राप्त करें।'
+                  : "Track your active dump site dispatches, monitor municipal tipper response times, and earn verified Civic Points toward your city's Green Champion leaderboard."}
               </p>
 
               {/* Civic Streak Pill */}
               <div className="inline-flex items-center gap-2 text-xs font-bold text-amber-900 bg-amber-100/90 px-3 py-1 rounded-full border border-amber-300">
                 <Flame size={14} className="text-amber-600 fill-amber-500" />
-                <span>🔥 7-Day Active Citizen Cleanliness Streak</span>
+                <span>{t.civicStreak}</span>
               </div>
             </div>
 
@@ -142,7 +150,7 @@ export default function DashboardPage() {
                 className="clay-btn-green text-white font-black px-7 py-4 text-sm flex items-center justify-center gap-2.5 shine-sweep-effect shadow-lg"
               >
                 <Camera size={18} />
-                <span>Report Illegal Dump</span>
+                <span>{t.reportIllegalDumpBtn}</span>
                 <ArrowRight size={16} />
               </Link>
               <Link
@@ -150,7 +158,7 @@ export default function DashboardPage() {
                 className="glass-card-3d hover:bg-emerald-50/50 text-emerald-900 font-extrabold px-6 py-4 text-sm rounded-full flex items-center justify-center gap-2 border border-emerald-300/80 transition shadow-sm"
               >
                 <MapPin size={17} className="text-emerald-700" />
-                <span>Locate Plants</span>
+                <span>{t.locatePlantsBtn}</span>
               </Link>
             </div>
           </div>
@@ -162,7 +170,7 @@ export default function DashboardPage() {
           <div className="clay-card-3d p-6 relative group border-t-4 border-t-emerald-500">
             <div className="flex items-center justify-between mb-3">
               <span className="text-xs font-black text-gray-500 uppercase tracking-wider">
-                My Dump Reports
+                {t.metricMyReports}
               </span>
               <div className="w-10 h-10 rounded-2xl bg-emerald-100 text-emerald-700 flex items-center justify-center shadow-inner">
                 <Camera size={20} />
@@ -170,7 +178,11 @@ export default function DashboardPage() {
             </div>
             <p className="text-3xl font-black text-gray-900">{myReports.length}</p>
             <p className="text-xs text-gray-500 mt-1">
-              {myReports.length > 0 ? 'Dispatched to sanitation team' : '0 reports submitted yet'}
+              {myReports.length > 0
+                ? t.metricMyReportsDesc
+                : lang === 'hi'
+                ? 'अभी तक 0 रिपोर्टें'
+                : '0 reports submitted yet'}
             </p>
           </div>
 
@@ -178,7 +190,7 @@ export default function DashboardPage() {
           <div className="clay-card-3d p-6 relative group border-t-4 border-t-teal-500">
             <div className="flex items-center justify-between mb-3">
               <span className="text-xs font-black text-gray-500 uppercase tracking-wider">
-                Resolved & Cleared
+                {t.metricResolved}
               </span>
               <div className="w-10 h-10 rounded-2xl bg-teal-100 text-teal-700 flex items-center justify-center shadow-inner">
                 <CheckCheck size={20} />
@@ -186,7 +198,11 @@ export default function DashboardPage() {
             </div>
             <p className="text-3xl font-black text-gray-900">{resolvedCount}</p>
             <p className="text-xs text-gray-500 mt-1">
-              {resolvedCount > 0 ? 'Sites completely cleaned' : 'Awaiting tipper verification'}
+              {resolvedCount > 0
+                ? t.metricResolvedDesc
+                : lang === 'hi'
+                ? 'सत्यापन लंबित'
+                : 'Awaiting tipper verification'}
             </p>
           </div>
 
@@ -194,21 +210,21 @@ export default function DashboardPage() {
           <div className="clay-card-3d p-6 relative group border-t-4 border-t-amber-500">
             <div className="flex items-center justify-between mb-3">
               <span className="text-xs font-black text-gray-500 uppercase tracking-wider">
-                Civic Points Balance
+                {t.metricCivicPoints}
               </span>
               <div className="w-10 h-10 rounded-2xl bg-amber-100 text-amber-700 flex items-center justify-center shadow-inner">
                 <Flame size={20} />
               </div>
             </div>
-            <p className="text-3xl font-black text-amber-800">{civicPoints} pts</p>
-            <p className="text-xs text-gray-500 mt-1">Redeemable for tax rebates & compost</p>
+            <p className="text-3xl font-black text-amber-800">{civicPoints} {lang === 'hi' ? 'अंक' : 'pts'}</p>
+            <p className="text-xs text-gray-500 mt-1">{t.metricCivicPointsDesc}</p>
           </div>
 
           {/* Card 4: Champion Rank */}
           <div className="clay-card-3d p-6 relative group border-t-4 border-t-purple-500">
             <div className="flex items-center justify-between mb-3">
               <span className="text-xs font-black text-gray-500 uppercase tracking-wider">
-                Champion Rank
+                {t.metricChampionRank}
               </span>
               <div className="w-10 h-10 rounded-2xl bg-purple-100 text-purple-700 flex items-center justify-center shadow-inner">
                 <Award size={20} />
@@ -227,12 +243,12 @@ export default function DashboardPage() {
                 <Gift size={20} />
               </div>
               <div>
-                <h2 className="text-lg font-black text-gray-900">Green Rewards & Vouchers</h2>
-                <p className="text-xs text-gray-500">Convert your civic points into municipal incentives</p>
+                <h2 className="text-lg font-black text-gray-900">{t.greenRewardsTitle}</h2>
+                <p className="text-xs text-gray-500">{t.greenRewardsSubtitle}</p>
               </div>
             </div>
             <div className="glass-card-3d rounded-xl px-3 py-1.5 self-start text-xs font-black text-emerald-800">
-              Balance: {civicPoints} Civic Points
+              {lang === 'hi' ? 'शेष:' : 'Balance:'} {civicPoints} {lang === 'hi' ? 'नागरिक अंक' : 'Civic Points'}
             </div>
           </div>
 
@@ -254,7 +270,7 @@ export default function DashboardPage() {
                     <div className="flex items-center justify-between mb-2">
                       <span className="text-2xl">{rew.icon}</span>
                       <span className="text-xs font-black text-amber-700 bg-amber-50 px-2 py-0.5 rounded-full border border-amber-200">
-                        {rew.pointsCost} Pts
+                        {rew.pointsCost} {lang === 'hi' ? 'अंक' : 'Pts'}
                       </span>
                     </div>
                     <h3 className="font-extrabold text-sm text-gray-900 leading-snug">{rew.title}</h3>
@@ -270,7 +286,7 @@ export default function DashboardPage() {
                       disabled={!canAfford}
                       className="clay-btn-green text-white text-[11px] font-black px-3.5 py-1.5 disabled:opacity-40"
                     >
-                      Redeem
+                      {t.redeemBtn}
                     </button>
                   </div>
                 </div>
@@ -287,12 +303,12 @@ export default function DashboardPage() {
                 <Trophy size={20} />
               </div>
               <div>
-                <h2 className="text-lg font-black text-gray-900">Swachh Survekshan Ward Leaderboard</h2>
-                <p className="text-xs text-gray-500">Live Ward Cleanliness Index (WCI) and Tipper SLA tracking</p>
+                <h2 className="text-lg font-black text-gray-900">{t.wardLeaderboardTitle}</h2>
+                <p className="text-xs text-gray-500">{t.wardLeaderboardSubtitle}</p>
               </div>
             </div>
             <span className="text-xs font-bold text-emerald-800 bg-emerald-100 px-3 py-1 rounded-full">
-              City Zone: Active
+              {lang === 'hi' ? 'शहर ज़ोन: सक्रिय' : 'City Zone: Active'}
             </span>
           </div>
 
@@ -300,13 +316,13 @@ export default function DashboardPage() {
             <table className="w-full text-xs text-left" aria-label="Ward Leaderboard">
               <thead>
                 <tr className="border-b border-gray-200 text-gray-500 font-extrabold uppercase tracking-wider text-[10px]">
-                  <th className="py-2.5 px-3">Rank</th>
-                  <th className="py-2.5 px-3">Municipal Ward</th>
-                  <th className="py-2.5 px-3">Zone</th>
-                  <th className="py-2.5 px-3">Cleanliness Index (WCI)</th>
-                  <th className="py-2.5 px-3">Resolution Rate</th>
-                  <th className="py-2.5 px-3">Avg Cleanup SLA</th>
-                  <th className="py-2.5 px-3">Active Champions</th>
+                  <th className="py-2.5 px-3">{t.wardRank}</th>
+                  <th className="py-2.5 px-3">{t.wardName}</th>
+                  <th className="py-2.5 px-3">{t.wardZone}</th>
+                  <th className="py-2.5 px-3">{t.wardWci}</th>
+                  <th className="py-2.5 px-3">{t.wardCleanupRate}</th>
+                  <th className="py-2.5 px-3">{t.wardSla}</th>
+                  <th className="py-2.5 px-3">{t.wardChampions}</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-100 font-medium text-gray-800">
@@ -316,7 +332,7 @@ export default function DashboardPage() {
                       {ward.rank === 1 ? '🥇 #1' : ward.rank === 2 ? '🥈 #2' : ward.rank === 3 ? '🥉 #3' : `#${ward.rank}`}
                     </td>
                     <td className="py-3 px-3 font-bold text-gray-900">
-                      Ward {ward.wardNumber} • {ward.name}
+                      {lang === 'hi' ? `वार्ड ${ward.wardNumber} • ${ward.name}` : `Ward ${ward.wardNumber} • ${ward.name}`}
                     </td>
                     <td className="py-3 px-3 text-gray-500">{ward.zone}</td>
                     <td className="py-3 px-3">
@@ -325,8 +341,10 @@ export default function DashboardPage() {
                       </span>
                     </td>
                     <td className="py-3 px-3 font-bold text-teal-700">{ward.cleanupRate}%</td>
-                    <td className="py-3 px-3 text-gray-600">{ward.avgResponseHours} hrs</td>
-                    <td className="py-3 px-3 font-bold text-gray-900">{ward.activeChampions} citizens</td>
+                    <td className="py-3 px-3 text-gray-600">{ward.avgResponseHours} {lang === 'hi' ? 'घंटे' : 'hrs'}</td>
+                    <td className="py-3 px-3 font-bold text-gray-900">
+                      {ward.activeChampions} {lang === 'hi' ? 'नागरिक' : 'citizens'}
+                    </td>
                   </tr>
                 ))}
               </tbody>
@@ -343,11 +361,11 @@ export default function DashboardPage() {
                   <BarChart3 size={18} />
                 </div>
                 <h2 className="text-lg font-black text-gray-900">
-                  Municipal Waste Category Distribution
+                  {t.wasteDistTitle}
                 </h2>
               </div>
               <span className="text-xs font-bold text-gray-500">
-                {allReports.length} Total Registered Reports
+                {allReports.length} {t.totalReportsRegistered}
               </span>
             </div>
 
@@ -375,25 +393,24 @@ export default function DashboardPage() {
         {/* ── My Recent Reports Feed ── */}
         <div className="clay-card-3d p-6 sm:p-8 space-y-5">
           <div className="flex items-center justify-between border-b border-gray-200/80 pb-4">
-
-            <h2 className="text-lg font-black text-gray-900">My Recent Submissions</h2>
+            <h2 className="text-lg font-black text-gray-900">{t.myRecentReportsTitle}</h2>
             <Link
               href="/report"
               className="text-xs font-extrabold text-emerald-700 hover:underline flex items-center gap-1"
             >
-              <span>+ New Report</span>
+              <span>+ {t.navReport}</span>
             </Link>
           </div>
 
           {myReports.length === 0 ? (
             <div className="py-12 text-center text-gray-400 space-y-3">
               <Camera size={36} className="mx-auto opacity-40" />
-              <p className="text-sm font-bold text-gray-700">No reports submitted yet.</p>
+              <p className="text-sm font-bold text-gray-700">{t.noReportsYet}</p>
               <Link
                 href="/report"
                 className="clay-btn-green text-white text-xs font-extrabold px-5 py-2.5 inline-flex items-center gap-2 shadow-sm"
               >
-                <Camera size={14} /> Report Your First Dump
+                <Camera size={14} /> {t.reportFirstDump}
               </Link>
             </div>
           ) : (
@@ -468,7 +485,7 @@ export default function DashboardPage() {
                 <span>{selectedReward.code}</span>
               </div>
               <p className="text-[10px] text-gray-400 font-semibold">
-                Valid until {selectedReward.expiresAt} • Present at Municipal Office or Transit Counter
+                {lang === 'hi' ? 'वैधता:' : 'Valid until'} {selectedReward.expiresAt} • {lang === 'hi' ? 'नगरपालिका कार्यालय या काउंटर पर दिखाएं' : 'Present at Municipal Office or Transit Counter'}
               </p>
             </div>
 
@@ -476,7 +493,7 @@ export default function DashboardPage() {
               onClick={() => setSelectedReward(null)}
               className="clay-btn-green text-white font-bold px-6 py-2.5 text-xs w-full"
             >
-              Done / Close
+              {t.close}
             </button>
           </div>
         </div>
@@ -484,5 +501,3 @@ export default function DashboardPage() {
     </Layout>
   );
 }
-
-

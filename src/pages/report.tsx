@@ -25,45 +25,13 @@ import {
   Truck,
 } from 'lucide-react';
 import Link from 'next/link';
-
-const WASTE_CATEGORIES: { value: WasteCategory; label: string; emoji: string; desc: string; keywords: string[] }[] = [
-  { value: 'wet_organic', label: 'Wet / Organic', emoji: '🥬', desc: 'Food scraps, garden waste', keywords: ['food', 'vegetable', 'fruit', 'organic', 'leaf', 'leaves', 'banana', 'coconut'] },
-  { value: 'dry_recyclable', label: 'Dry / Recyclable', emoji: '📦', desc: 'Plastic, paper, glass', keywords: ['plastic', 'bottle', 'paper', 'cardboard', 'carton', 'box', 'glass', 'can'] },
-  { value: 'hazardous', label: 'Hazardous', emoji: '☣️', desc: 'Batteries, chemicals, medical', keywords: ['battery', 'medicine', 'chemical', 'sanitary', 'diaper', 'needle', 'toxic'] },
-  { value: 'e_waste', label: 'E-Waste', emoji: '🔌', desc: 'Cables, phones, gadgets', keywords: ['phone', 'wire', 'cable', 'charger', 'electronic', 'circuit', 'bulb', 'light'] },
-  { value: 'construction', label: 'Construction', emoji: '🧱', desc: 'Debris, cement, tiles', keywords: ['debris', 'cement', 'brick', 'tile', 'sand', 'rubble', 'concrete', 'plaster'] },
-  { value: 'mixed', label: 'Mixed / Blackspot', emoji: '🗑️', desc: 'Unsorted street dumps', keywords: ['heap', 'dump', 'garbage', 'street', 'blackspot', 'waste'] },
-];
-
-const SEVERITY_OPTIONS: { value: ReportSeverity; label: string; color: string; ring: string }[] = [
-  {
-    value: 'low',
-    label: '🟢 Low — Small heap (< 5kg)',
-    color: 'bg-emerald-50 text-emerald-800 border-emerald-300',
-    ring: 'ring-emerald-400',
-  },
-  {
-    value: 'medium',
-    label: '🟡 Medium — Overflowing Bin',
-    color: 'bg-amber-50 text-amber-800 border-amber-300',
-    ring: 'ring-amber-400',
-  },
-  {
-    value: 'high',
-    label: '🟠 High — Roadside Dumping',
-    color: 'bg-orange-50 text-orange-800 border-orange-300',
-    ring: 'ring-orange-400',
-  },
-  {
-    value: 'critical',
-    label: '🔴 Critical — Drain/Water Blocked',
-    color: 'bg-red-50 text-red-800 border-red-300',
-    ring: 'ring-red-400',
-  },
-];
+import { useLanguage } from '@/lib/translations';
+import LocationGrasper from '@/components/LocationGrasper';
 
 export default function ReportPage() {
   const router = useRouter();
+  const { t, lang } = useLanguage();
+
   const fileRef = useRef<HTMLInputElement>(null);
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const audioChunksRef = useRef<Blob[]>([]);
@@ -74,7 +42,9 @@ export default function ReportPage() {
   const [wasteCategory, setWasteCategory] = useState<WasteCategory>('mixed');
   const [severity, setSeverity] = useState<ReportSeverity>('medium');
   const [location, setLocation] = useState<{ lat: number; lng: number } | null>(null);
-  const [locError, setLocError] = useState<string | null>(null);
+  const [geocodedAddress, setGeocodedAddress] = useState<string>('');
+  const [gpsAccuracy, setGpsAccuracy] = useState<number | null>(null);
+
   const [submitting, setSubmitting] = useState(false);
   const [success, setSuccess] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -98,9 +68,44 @@ export default function ReportPage() {
   // Dispatch response state
   const [lastDispatchedReport, setLastDispatchedReport] = useState<any>(null);
 
+  const WASTE_CATEGORIES: { value: WasteCategory; label: string; emoji: string; desc: string; keywords: string[] }[] = [
+    { value: 'wet_organic', label: t.catWetOrganic, emoji: '🥬', desc: t.catWetOrganicDesc, keywords: ['food', 'vegetable', 'fruit', 'organic', 'leaf', 'leaves', 'banana', 'coconut', 'सब्जी', 'फल', 'खाना', 'छिलका'] },
+    { value: 'dry_recyclable', label: t.catDryRecyclable, emoji: '📦', desc: t.catDryRecyclableDesc, keywords: ['plastic', 'bottle', 'paper', 'cardboard', 'carton', 'box', 'glass', 'can', 'प्लास्टिक', 'बोतल', 'कागज', 'गत्ता'] },
+    { value: 'hazardous', label: t.catHazardous, emoji: '☣️', desc: t.catHazardousDesc, keywords: ['battery', 'medicine', 'chemical', 'sanitary', 'diaper', 'needle', 'toxic', 'बैटरी', 'दवा', 'मास्क', 'दस्ताने'] },
+    { value: 'e_waste', label: t.catEWaste, emoji: '🔌', desc: t.catEWasteDesc, keywords: ['phone', 'wire', 'cable', 'charger', 'electronic', 'circuit', 'bulb', 'light', 'तार', 'चार्जर', 'मोबाइल'] },
+    { value: 'construction', label: t.catConstruction, emoji: '🧱', desc: t.catConstructionDesc, keywords: ['debris', 'cement', 'brick', 'tile', 'sand', 'rubble', 'concrete', 'plaster', 'मलबा', 'सीमेंट', 'ईंट', 'रेत'] },
+    { value: 'mixed', label: t.catMixed, emoji: '🗑️', desc: t.catMixedDesc, keywords: ['heap', 'dump', 'garbage', 'street', 'blackspot', 'waste', 'कचरा', 'ढेर', 'गंदगी'] },
+  ];
+
+  const SEVERITY_OPTIONS: { value: ReportSeverity; label: string; color: string; ring: string }[] = [
+    {
+      value: 'low',
+      label: lang === 'hi' ? '🟢 निम्न — छोटा कचरा (< 5kg)' : '🟢 Low — Small heap (< 5kg)',
+      color: 'bg-emerald-50 text-emerald-800 border-emerald-300',
+      ring: 'ring-emerald-400',
+    },
+    {
+      value: 'medium',
+      label: lang === 'hi' ? '🟡 मध्यम — डस्टबिन ओवरफ्लो' : '🟡 Medium — Overflowing Bin',
+      color: 'bg-amber-50 text-amber-800 border-amber-300',
+      ring: 'ring-amber-400',
+    },
+    {
+      value: 'high',
+      label: lang === 'hi' ? '🟠 उच्च — सड़क पर डंपिंग' : '🟠 High — Roadside Dumping',
+      color: 'bg-orange-50 text-orange-800 border-orange-300',
+      ring: 'ring-orange-400',
+    },
+    {
+      value: 'critical',
+      label: lang === 'hi' ? '🔴 गंभीर — नाला / जल निकासी अवरुद्ध' : '🔴 Critical — Drain / Water Blocked',
+      color: 'bg-red-50 text-red-800 border-red-300',
+      ring: 'ring-red-400',
+    },
+  ];
+
   useEffect(() => {
     setUser(getCurrentUser());
-    requestLocation();
   }, []);
 
   useEffect(() => {
@@ -113,20 +118,15 @@ export default function ReportPage() {
     return () => clearInterval(interval);
   }, [isRecording]);
 
-  const requestLocation = () => {
-    setLocError(null);
-    if (!navigator.geolocation) {
-      setLocError('Geolocation is not supported by your browser.');
-      return;
-    }
-    navigator.geolocation.getCurrentPosition(
-      (pos) => setLocation({ lat: pos.coords.latitude, lng: pos.coords.longitude }),
-      () => {
-        setLocation({ lat: 28.6139, lng: 77.209 });
-        setLocError('Using simulated GPS coordinates (allow browser location for live GPS).');
-      },
-      { timeout: 8000, enableHighAccuracy: true }
-    );
+  const handleLocationGrasped = (data: {
+    lat: number;
+    lng: number;
+    address: string;
+    accuracy: number;
+  }) => {
+    setLocation({ lat: data.lat, lng: data.lng });
+    setGeocodedAddress(data.address);
+    setGpsAccuracy(data.accuracy);
   };
 
   const runAiClassifier = (text: string) => {
@@ -138,7 +138,10 @@ export default function ReportPage() {
           setAiSuggestion({
             category: cat.value,
             confidence,
-            reason: `Detected keyword "${kw}" associated with ${cat.label}`,
+            reason:
+              lang === 'hi'
+                ? `विवरण में मिले शब्द "${kw}" के आधार पर ${cat.label} का सुझाव`
+                : `Detected keyword "${kw}" associated with ${cat.label}`,
           });
           setWasteCategory(cat.value);
           return;
@@ -173,22 +176,25 @@ export default function ReportPage() {
             // REJECTED — not a waste image
             setAiRejected(true);
             setAiSuggestion(null);
-            setPhotoDataUrl(null);  // Clear the rejected image
+            setPhotoDataUrl(null); // Clear the rejected image
           } else if (result.classification) {
             // ACCEPTED — classify waste
             const mappedCategory = mapAIClassToCategory(result.classification.category) as WasteCategory;
+            const categoryObj = WASTE_CATEGORIES.find((c) => c.value === mappedCategory);
             setAiSuggestion({
               category: mappedCategory,
               confidence: result.classification.confidence,
-              reason: `AI Vision Model identified ${result.classification.category} waste (${result.classification.scores.organic}% organic, ${result.classification.scores.recyclable}% recyclable, ${result.classification.scores.hazardous}% hazardous)`,
+              reason:
+                lang === 'hi'
+                  ? `AI विज़न मॉडल ने ${categoryObj?.label || mappedCategory} की पहचान की (${result.classification.scores.organic}% जैविक, ${result.classification.scores.recyclable}% पुनर्चक्रण, ${result.classification.scores.hazardous}% खतरनाक)`
+                  : `AI Vision Model identified ${result.classification.category} waste (${result.classification.scores.organic}% organic, ${result.classification.scores.recyclable}% recyclable, ${result.classification.scores.hazardous}% hazardous)`,
             });
             setWasteCategory(mappedCategory);
             setAiRejected(false);
           }
         } catch (aiErr) {
-          console.warn('[WasteAI] Model inference failed, using keyword fallback:', aiErr);
-          setAiError('AI model unavailable — using keyword-based classification');
-          // Fallback to keyword-based classification
+          console.warn('[WasteAI] Model inference fallback:', aiErr);
+          setAiError(lang === 'hi' ? 'AI मॉडल अनुपलब्ध — कीवर्ड आधारित वर्गीकरण सक्रिय' : 'AI model unavailable — using keyword-based classification');
           const sampleKeywords = ['plastic', 'construction', 'debris', 'organic', 'vegetable', 'e_waste'];
           const randomKw = sampleKeywords[Math.floor(Math.random() * sampleKeywords.length)];
           const matched = WASTE_CATEGORIES.find((c) => c.keywords.includes(randomKw)) || WASTE_CATEGORIES[0];
@@ -213,13 +219,7 @@ export default function ReportPage() {
     reader.readAsDataURL(file);
   };
 
-  const clearPhoto = () => {
-    setPhotoDataUrl(null);
-    setAiSuggestion(null);
-    if (fileRef.current) fileRef.current.value = '';
-  };
-
-  // Voice recording handlers
+  // Audio recording handlers
   const startRecording = async () => {
     try {
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
@@ -228,7 +228,9 @@ export default function ReportPage() {
       audioChunksRef.current = [];
 
       mediaRecorder.ondataavailable = (event) => {
-        if (event.data.size > 0) audioChunksRef.current.push(event.data);
+        if (event.data.size > 0) {
+          audioChunksRef.current.push(event.data);
+        }
       };
 
       mediaRecorder.onstop = () => {
@@ -237,21 +239,24 @@ export default function ReportPage() {
         setAudioUrl(url);
 
         const reader = new FileReader();
-        reader.onloadend = () => setAudioDataUrl(reader.result as string);
         reader.readAsDataURL(audioBlob);
+        reader.onloadend = () => {
+          setAudioDataUrl(reader.result as string);
+        };
       };
 
       mediaRecorder.start();
       setIsRecording(true);
-    } catch {
-      setError('Microphone access denied or unavailable.');
+    } catch (err) {
+      console.error('Microphone access denied:', err);
+      setError('Microphone permission required to record landmark voice note.');
     }
   };
 
   const stopRecording = () => {
     if (mediaRecorderRef.current && isRecording) {
       mediaRecorderRef.current.stop();
-      mediaRecorderRef.current.stream.getTracks().forEach((t) => t.stop());
+      mediaRecorderRef.current.stream.getTracks().forEach((track) => track.stop());
       setIsRecording(false);
     }
   };
@@ -261,94 +266,137 @@ export default function ReportPage() {
     setAudioDataUrl(null);
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    setError(null);
-    if (!photoDataUrl || !location || !description.trim()) {
-      setError('Please provide a photo, description, and location to file the report.');
+    if (!user) return;
+    if (!photoDataUrl) {
+      setError('Please upload a valid waste photo.');
       return;
     }
+    if (!location) {
+      setError('Please grasp satellite GPS coordinates.');
+      return;
+    }
+    if (!description.trim()) {
+      setError('Please provide a brief description.');
+      return;
+    }
+
     setSubmitting(true);
+    setError(null);
+
     try {
-      const report = addReport({
+      const newReport = addReport({
+        userId: user.id,
+        userName: user.name,
         photoDataUrl,
         audioDataUrl: audioDataUrl || undefined,
         lat: location.lat,
         lng: location.lng,
+        address: geocodedAddress || undefined,
+        accuracy: gpsAccuracy || undefined,
         description: description.trim(),
         wasteCategory,
         severity,
       });
-      setLastDispatchedReport(report);
+
+      setLastDispatchedReport(newReport);
       setSuccess(true);
     } catch (err: any) {
-      setError(err.message || 'Failed to submit report. Please try again.');
+      setError(err?.message || 'Failed to submit report. Please try again.');
     } finally {
       setSubmitting(false);
     }
   };
 
-  if (!user) return null;
-
-  if (success) {
+  if (success && lastDispatchedReport) {
     return (
       <Layout>
-        <div className="max-w-xl mx-auto py-12 px-4 text-center">
-          <div className="clay-card-3d p-8 sm:p-10 text-center space-y-6">
-            <div className="w-20 h-20 rounded-3xl bg-gradient-to-br from-emerald-400 to-green-600 text-white flex items-center justify-center mx-auto shadow-[0_10px_25px_rgba(22,163,74,0.35)] animate-bounce">
-              <CheckCircle2 size={42} />
+        <div className="max-w-2xl mx-auto py-12 px-4 space-y-6">
+          {/* Success Card */}
+          <div className="clay-card-3d p-8 sm:p-10 text-center space-y-5 bg-white border-2 border-emerald-400/80 shadow-2xl">
+            <div className="w-20 h-20 rounded-3xl bg-emerald-100 text-emerald-600 flex items-center justify-center mx-auto shadow-inner">
+              <CheckCircle2 size={44} className="animate-bounce" />
             </div>
-            <div>
-              <span className="text-xs font-black uppercase tracking-widest text-emerald-800 bg-emerald-100 px-3 py-1 rounded-full">
-                Yadgir Model Dispatch Active
-              </span>
-              <h1 className="text-3xl font-black text-gray-900 mt-2">Dump Report Dispatched!</h1>
-              <p className="text-gray-600 text-sm sm:text-base mt-2 max-w-md mx-auto">
-                Your geo-tagged incident has been assigned to the nearest municipal sanitation tipper.
+
+            <div className="space-y-2">
+              <h1 className="text-2xl sm:text-3xl font-black text-gray-900">
+                {t.reportSubmittedTitle}
+              </h1>
+              <p className="text-sm text-gray-600 max-w-md mx-auto">
+                {t.reportSubmittedSubtitle}
               </p>
             </div>
 
-            {/* Tipper ETA Card */}
-            <div className="p-4 bg-emerald-50 rounded-2xl border border-emerald-200 text-left space-y-2">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2 text-emerald-900 font-extrabold text-xs">
-                  <Truck size={16} className="text-emerald-700" />
-                  <span>Assigned Vehicle: {lastDispatchedReport?.assignedTipper || 'Tipper-KA-33-E-1042'}</span>
+            {/* Smart Tipper Dispatch Telematics Card */}
+            <div className="p-5 rounded-2xl bg-gradient-to-br from-emerald-50 via-teal-50/60 to-white border border-emerald-300 text-left space-y-3 shadow-sm">
+              <div className="flex items-center justify-between border-b border-emerald-200 pb-2.5">
+                <div className="flex items-center gap-2">
+                  <div className="w-8 h-8 rounded-xl bg-emerald-600 text-white flex items-center justify-center shadow-sm">
+                    <Truck size={18} />
+                  </div>
+                  <div>
+                    <span className="text-[10px] font-black uppercase text-emerald-800 tracking-wider block">
+                      {t.assignedTipper}
+                    </span>
+                    <span className="font-mono font-black text-sm text-emerald-950">
+                      {lastDispatchedReport.assignedTipper || 'KA-33-E-1042'}
+                    </span>
+                  </div>
                 </div>
-                <span className="text-xs font-black bg-emerald-200 text-emerald-900 px-2 py-0.5 rounded-full">
-                  ETA ~{lastDispatchedReport?.etaMinutes || 35} mins
-                </span>
+                <div className="text-right">
+                  <span className="text-[10px] font-black uppercase text-gray-500 block">
+                    {t.tipperEta}
+                  </span>
+                  <span className="text-xs font-black text-emerald-700 bg-emerald-100 px-2.5 py-0.5 rounded-full border border-emerald-300">
+                    ⚡ ~{lastDispatchedReport.etaMinutes || 18} {lang === 'hi' ? 'मिनट' : 'Minutes'}
+                  </span>
+                </div>
               </div>
-              <p className="text-[11px] text-emerald-800 font-semibold">
-                📍 Location: {location?.lat.toFixed(4)}°N, {location?.lng.toFixed(4)}°E • Severity: {severity.toUpperCase()}
-              </p>
-              <p className="text-[11px] text-emerald-700">
-                🏅 <b>+15 Civic Points</b> added to your Champion profile.
-              </p>
+
+              <div className="grid grid-cols-2 gap-2 text-xs">
+                <div>
+                  <span className="text-gray-500 block text-[10px]">{t.category}</span>
+                  <span className="font-bold text-gray-800 capitalize">
+                    {lastDispatchedReport.wasteCategory.replace('_', ' ')}
+                  </span>
+                </div>
+                <div>
+                  <span className="text-gray-500 block text-[10px]">{t.gpsCoords}</span>
+                  <span className="font-mono font-semibold text-gray-800">
+                    {lastDispatchedReport.lat.toFixed(4)}°, {lastDispatchedReport.lng.toFixed(4)}°
+                  </span>
+                </div>
+              </div>
+
+              {geocodedAddress && (
+                <div className="pt-2 border-t border-emerald-100 text-[11px] text-gray-700 flex items-start gap-1.5">
+                  <MapPin size={13} className="text-emerald-700 flex-shrink-0 mt-0.5" />
+                  <span className="font-medium truncate">{geocodedAddress}</span>
+                </div>
+              )}
             </div>
 
-            <div className="flex flex-col sm:flex-row gap-3 justify-center pt-2">
-              <button
-                onClick={() => {
-                  clearPhoto();
-                  clearAudio();
-                  setDescription('');
-                  setWasteCategory('mixed');
-                  setSeverity('medium');
-                  setSuccess(false);
-                  setError(null);
-                }}
-                className="clay-btn-green text-white font-bold px-6 py-3 text-sm flex items-center justify-center gap-2 shine-sweep-effect"
-              >
-                <span>Report Another Dump</span>
-              </button>
+            <div className="flex flex-col sm:flex-row gap-3 pt-2">
               <Link
                 href="/dashboard"
-                className="glass-card-3d hover:bg-white text-gray-800 font-bold px-6 py-3 text-sm rounded-full flex items-center justify-center gap-2 transition"
+                className="flex-1 clay-btn-green text-white font-extrabold text-sm py-3.5 flex items-center justify-center gap-2 shine-sweep-effect shadow-md"
               >
-                <span>Go to Dashboard</span>
+                <span>{t.viewInDashboard}</span>
                 <ArrowRight size={16} />
               </Link>
+              <button
+                onClick={() => {
+                  setSuccess(false);
+                  setPhotoDataUrl(null);
+                  setDescription('');
+                  setLastDispatchedReport(null);
+                  clearAudio();
+                }}
+                className="glass-card-3d px-6 py-3.5 rounded-full text-xs font-bold text-gray-700 hover:bg-gray-100 border border-gray-200"
+              >
+                {t.reportAnother}
+              </button>
             </div>
           </div>
         </div>
@@ -359,82 +407,65 @@ export default function ReportPage() {
   return (
     <Layout>
       <div className="max-w-3xl mx-auto space-y-8">
-        {/* ── Page Header ── */}
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-          <div>
-            <div className="inline-flex items-center gap-2 text-xs font-bold text-red-700 bg-red-100 px-3 py-1 rounded-full mb-2">
-              <ShieldAlert size={14} />
-              <span>Yadgir Rapid Civic Protocol</span>
-            </div>
-            <h1 className="text-3xl font-black text-gray-900 tracking-tight">
-              Report Illegal Waste Dump
-            </h1>
-            <p className="text-gray-600 text-sm mt-1">
-              Capture photo evidence, record voice notes, and trigger municipal tippers.
-            </p>
+        {/* Header */}
+        <div className="text-center space-y-2">
+          <div className="inline-flex items-center gap-2 text-xs font-black uppercase tracking-widest text-emerald-800 bg-emerald-100 px-3.5 py-1.5 rounded-full border border-emerald-300 shadow-sm">
+            <Sparkles size={13} className="text-emerald-700" />
+            <span>{lang === 'hi' ? 'नागरिक डंप रिपोर्टिंग' : 'Civic Dump Reporting'}</span>
           </div>
-
-          <div className="glass-card-3d rounded-2xl px-4 py-2.5 flex items-center gap-2.5 self-start border border-white">
-            <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse-dot" />
-            <span className="text-xs font-bold text-gray-700">GPS Radar Active</span>
-          </div>
+          <h1 className="text-3xl sm:text-4xl font-black text-gray-900 tracking-tight">
+            {t.reportPageTitle}
+          </h1>
+          <p className="text-sm text-gray-600 max-w-lg mx-auto">
+            {t.reportPageSubtitle}
+          </p>
         </div>
 
-        {/* ── Main Form ── */}
-        <form onSubmit={handleSubmit} className="clay-card-3d p-6 sm:p-8 space-y-6">
-          {/* 1. Photo Upload Zone */}
+        {/* Reporting Form */}
+        <form onSubmit={handleSubmit} className="clay-card-3d p-6 sm:p-8 space-y-7 bg-white">
+          {/* 1. Photo Capture */}
           <div>
-            <label className="block text-sm font-extrabold text-gray-900 mb-2 flex items-center justify-between">
-              <span>1. Dump Site Photo Evidence *</span>
-              {photoDataUrl && (
-                <span className="text-xs font-bold text-emerald-600">✓ Compressed & Vision Ready</span>
-              )}
+            <label className="flex items-center gap-1.5 text-sm font-extrabold text-gray-900 mb-2">
+              <Camera size={16} className="text-emerald-700" />
+              <span>{t.step1Photo}</span>
             </label>
 
             {photoDataUrl ? (
-              <div className="relative rounded-2xl overflow-hidden border-2 border-emerald-200 group aspect-[16/9]">
+              <div className="relative rounded-3xl overflow-hidden border-2 border-emerald-300 max-h-72 bg-black/5 shadow-inner">
                 <img
                   src={photoDataUrl}
-                  alt="Preview of reported dump site"
-                  className="w-full h-full object-cover"
-                  onError={() => setPhotoDataUrl(null)}
+                  alt="Uploaded Dump Site Preview"
+                  className="w-full h-72 object-cover"
                 />
-                <div className="absolute inset-0 bg-black/30 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-3">
-                  <button
-                    type="button"
-                    onClick={() => fileRef.current?.click()}
-                    className="clay-btn-green text-white text-xs font-bold px-4 py-2 flex items-center gap-1.5"
-                  >
-                    <Camera size={14} /> Retake
-                  </button>
-                  <button
-                    type="button"
-                    onClick={clearPhoto}
-                    className="bg-red-600 hover:bg-red-700 text-white text-xs font-bold px-4 py-2 rounded-full flex items-center gap-1.5 shadow-md"
-                  >
-                    <X size={14} /> Remove
-                  </button>
-                </div>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setPhotoDataUrl(null);
+                    setAiSuggestion(null);
+                    setAiRejected(false);
+                    setAiResult(null);
+                  }}
+                  className="absolute top-3 right-3 bg-red-600 hover:bg-red-700 text-white p-2 rounded-full shadow-lg transition"
+                  aria-label="Remove photo"
+                >
+                  <X size={16} />
+                </button>
               </div>
             ) : (
-              <button
-                type="button"
+              <div
                 onClick={() => fileRef.current?.click()}
-                disabled={isCompressing}
-                className="w-full h-48 border-2 border-dashed border-emerald-300/80 hover:border-emerald-500 rounded-3xl flex flex-col items-center justify-center gap-2 text-emerald-800 bg-emerald-50/40 hover:bg-emerald-50/70 transition-all group"
+                className="border-2 border-dashed border-emerald-300 hover:border-emerald-500 rounded-3xl p-8 sm:p-10 flex flex-col items-center justify-center cursor-pointer transition-all duration-200 bg-emerald-50/40 hover:bg-emerald-50/80 group"
               >
-                <div className="w-12 h-12 rounded-2xl bg-white text-emerald-600 flex items-center justify-center shadow-md group-hover:scale-110 transition-transform">
-                  <Camera size={24} />
+                <div className="w-16 h-16 rounded-2xl bg-white text-emerald-600 flex items-center justify-center shadow-md group-hover:scale-105 transition-transform mb-3">
+                  <Camera size={30} />
                 </div>
-                <div className="text-center">
-                  <p className="text-sm font-black text-gray-900">
-                    {isCompressing ? 'Compressing Photo…' : 'Capture or Upload Dump Photo'}
-                  </p>
-                  <p className="text-[11px] text-gray-500 mt-0.5">
-                    Auto-analyzes waste category via built-in vision model
-                  </p>
-                </div>
-              </button>
+                <p className="font-extrabold text-sm text-gray-800">
+                  {isCompressing ? t.loading : t.takePhoto}
+                </p>
+                <p className="text-xs text-gray-500 mt-1">
+                  {lang === 'hi' ? 'स्मार्ट विज़न मॉडल द्वारा स्वतः जांच' : 'AI automatically validates waste content and suggests category'}
+                </p>
+              </div>
             )}
 
             <input
@@ -455,8 +486,8 @@ export default function ReportPage() {
                 <Bot size={18} />
               </div>
               <div>
-                <p className="text-xs font-black text-blue-950">🔍 AI Waste Validator Analyzing...</p>
-                <p className="text-[11px] text-blue-800 mt-0.5">Running MobileNetV2 vision model to verify this is a waste image</p>
+                <p className="text-xs font-black text-blue-950">{t.aiAnalyzing}</p>
+                <p className="text-[11px] text-blue-800 mt-0.5">{t.aiAnalyzingDesc}</p>
               </div>
             </div>
           )}
@@ -468,17 +499,17 @@ export default function ReportPage() {
                 <ShieldAlert size={20} />
               </div>
               <div className="flex-1">
-                <p className="text-sm font-black text-red-900">⚠️ Image Rejected — Not Waste</p>
+                <p className="text-sm font-black text-red-900">{t.aiRejectedTitle}</p>
                 <p className="text-xs text-red-800 mt-1 leading-relaxed">
-                  Our AI vision model determined this image does <strong>not contain waste material</strong>.
-                  Only photos of actual waste, garbage dumps, or illegal dumping sites are accepted.
+                  {t.aiRejectedDesc}
                   {aiResult?.gate && (
                     <span className="block mt-1 font-semibold">
-                      Waste confidence: {aiResult.gate.confidence}% (threshold: 60%)
+                      {lang === 'hi' ? 'कचरा संभावना स्कोर:' : 'Waste confidence:'} {aiResult.gate.confidence}% ({lang === 'hi' ? 'सीमा' : 'threshold'}: 60%)
                     </span>
                   )}
                 </p>
                 <button
+                  type="button"
                   onClick={() => {
                     setAiRejected(false);
                     setAiResult(null);
@@ -486,7 +517,7 @@ export default function ReportPage() {
                   }}
                   className="mt-3 clay-btn-green text-white text-xs font-bold px-4 py-2 flex items-center gap-1.5"
                 >
-                  <Camera size={14} /> Upload a Different Photo
+                  <Camera size={14} /> {t.aiRejectedBtn}
                 </button>
               </div>
             </div>
@@ -509,7 +540,7 @@ export default function ReportPage() {
               <div className="flex-1">
                 <div className="flex items-center justify-between">
                   <span className="text-xs font-black text-emerald-950">
-                    ✨ AI Suggested: {WASTE_CATEGORIES.find((c) => c.value === aiSuggestion.category)?.label}
+                    ✨ {lang === 'hi' ? 'AI सुझाव:' : 'AI Suggested:'} {WASTE_CATEGORIES.find((c) => c.value === aiSuggestion.category)?.label}
                   </span>
                   <span className="text-[10px] font-extrabold bg-emerald-200/90 text-emerald-900 px-2 py-0.5 rounded-full">
                     {aiSuggestion.confidence}% Match
@@ -524,7 +555,7 @@ export default function ReportPage() {
           <div>
             <label className="flex items-center gap-1.5 text-sm font-extrabold text-gray-900 mb-2">
               <Tag size={15} className="text-emerald-700" />
-              <span>2. Waste Classification *</span>
+              <span>{t.step2Category}</span>
             </label>
             <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
               {WASTE_CATEGORIES.map((cat) => {
@@ -558,7 +589,7 @@ export default function ReportPage() {
           <div>
             <label className="flex items-center gap-1.5 text-sm font-extrabold text-gray-900 mb-2">
               <AlertTriangle size={15} className="text-amber-600" />
-              <span>3. Severity & Impact Level *</span>
+              <span>{t.step3Severity}</span>
             </label>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
               {SEVERITY_OPTIONS.map((opt) => {
@@ -581,11 +612,20 @@ export default function ReportPage() {
             </div>
           </div>
 
-          {/* 4. Description & Voice Note */}
+          {/* 4. High-Precision Location Grasper */}
+          <div>
+            <label className="flex items-center gap-1.5 text-sm font-extrabold text-gray-900 mb-2">
+              <MapPin size={16} className="text-emerald-700" />
+              <span>{t.step4Location}</span>
+            </label>
+            <LocationGrasper onLocationGrasped={handleLocationGrasped} />
+          </div>
+
+          {/* 5. Description & Voice Landmark Note */}
           <div>
             <div className="flex items-center justify-between mb-2">
               <label htmlFor="report-desc" className="text-sm font-extrabold text-gray-900">
-                4. Landmark & Dump Description *
+                {t.step6Description}
               </label>
               {/* Voice Record Button */}
               {!isRecording ? (
@@ -595,7 +635,7 @@ export default function ReportPage() {
                   className="text-xs font-bold text-emerald-800 bg-emerald-100 hover:bg-emerald-200 px-3 py-1 rounded-full flex items-center gap-1.5 transition border border-emerald-300"
                 >
                   <Mic size={13} className="text-emerald-700" />
-                  <span>Record Voice Note</span>
+                  <span>{t.startRecording}</span>
                 </button>
               ) : (
                 <button
@@ -604,7 +644,7 @@ export default function ReportPage() {
                   className="text-xs font-bold text-white bg-red-600 hover:bg-red-700 px-3 py-1 rounded-full flex items-center gap-1.5 transition animate-pulse"
                 >
                   <Square size={12} />
-                  <span>Stop Recording ({recordingTime}s)</span>
+                  <span>{t.stopRecording} ({recordingTime}s)</span>
                 </button>
               )}
             </div>
@@ -618,7 +658,7 @@ export default function ReportPage() {
               }}
               required
               rows={3}
-              placeholder="E.g., Large plastic debris and polybags dumped behind park gate near drainage pipe."
+              placeholder={t.descPlaceholder}
               className="w-full p-4 rounded-2xl border border-gray-300 focus:outline-none focus:ring-2 focus:ring-emerald-500 bg-white text-sm resize-none shadow-inner"
             />
 
@@ -627,7 +667,7 @@ export default function ReportPage() {
               <div className="mt-2 p-3 bg-emerald-50 rounded-xl border border-emerald-200 flex items-center justify-between">
                 <div className="flex items-center gap-2">
                   <Volume2 size={16} className="text-emerald-700" />
-                  <span className="text-xs font-bold text-emerald-900">Voice Landmark Attached</span>
+                  <span className="text-xs font-bold text-emerald-900">{t.audioRecorded}</span>
                   <audio src={audioUrl} controls className="h-7 w-48 ml-2" />
                 </div>
                 <button
@@ -635,37 +675,10 @@ export default function ReportPage() {
                   onClick={clearAudio}
                   className="text-xs text-red-600 hover:underline font-bold"
                 >
-                  Delete
+                  {t.deleteAudio}
                 </button>
               </div>
             )}
-          </div>
-
-          {/* 5. Live GPS Coordinates */}
-          <div className="p-4 rounded-2xl bg-white/90 border border-emerald-200/80 shadow-sm flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
-            <div className="flex items-center gap-2.5">
-              <div className="w-8 h-8 rounded-xl bg-emerald-100 text-emerald-700 flex items-center justify-center">
-                <MapPin size={18} />
-              </div>
-              <div>
-                <p className="text-xs font-extrabold text-gray-900">
-                  {location
-                    ? `📍 GPS Locked: ${location.lat.toFixed(4)}°N, ${location.lng.toFixed(4)}°E`
-                    : 'Searching for GPS signal…'}
-                </p>
-                <p className="text-[10px] text-gray-500">
-                  {locError || 'High-precision municipal geo-tagging active'}
-                </p>
-              </div>
-            </div>
-
-            <button
-              type="button"
-              onClick={requestLocation}
-              className="text-xs font-bold text-emerald-800 bg-emerald-50 hover:bg-emerald-100 px-3 py-1.5 rounded-xl flex items-center gap-1.5 transition border border-emerald-200"
-            >
-              <RefreshCw size={12} /> Refresh GPS
-            </button>
           </div>
 
           {error && (
@@ -689,7 +702,7 @@ export default function ReportPage() {
             ) : (
               <>
                 <Upload size={18} />
-                <span>Submit & Dispatch Tipper Unit</span>
+                <span>{t.submitReportBtn}</span>
               </>
             )}
           </button>
@@ -698,4 +711,3 @@ export default function ReportPage() {
     </Layout>
   );
 }
-

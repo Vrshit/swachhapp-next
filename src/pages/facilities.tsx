@@ -21,6 +21,7 @@ import {
   Coins,
   BatteryCharging,
 } from 'lucide-react';
+import { useLanguage } from '@/lib/translations';
 
 const MapWithNoSSR = dynamic(() => import('@/components/FacilityMap'), {
   ssr: false,
@@ -31,47 +32,49 @@ const MapWithNoSSR = dynamic(() => import('@/components/FacilityMap'), {
   ),
 });
 
-const TYPE_META: Record<
-  Facility['type'],
-  { label: string; icon: any; color: string; bg: string; border: string }
-> = {
-  biomethanisation: {
-    label: 'Biomethanisation Unit',
-    icon: Factory,
-    color: 'text-emerald-700',
-    bg: 'bg-emerald-100',
-    border: 'border-emerald-200',
-  },
-  'waste-to-energy': {
-    label: 'Waste-to-Energy Plant',
-    icon: Zap,
-    color: 'text-amber-700',
-    bg: 'bg-amber-100',
-    border: 'border-amber-200',
-  },
-  recycling: {
-    label: 'Recycling Hub',
-    icon: Recycle,
-    color: 'text-teal-700',
-    bg: 'bg-teal-100',
-    border: 'border-teal-200',
-  },
-  'scrap-collection': {
-    label: 'Scrap & Material Recovery',
-    icon: Store,
-    color: 'text-purple-700',
-    bg: 'bg-purple-100',
-    border: 'border-purple-200',
-  },
-};
-
 type FacilityWithDistance = Facility & { distanceKm?: number };
 
 export default function FacilitiesPage() {
+  const { t, lang } = useLanguage();
+
   const [facilities, setFacilities] = useState<FacilityWithDistance[]>([]);
   const [selectedType, setSelectedType] = useState<string>('all');
   const [searchQuery, setSearchQuery] = useState('');
   const [userLoc, setUserLoc] = useState<{ lat: number; lng: number } | null>(null);
+
+  const TYPE_META: Record<
+    Facility['type'],
+    { label: string; icon: any; color: string; bg: string; border: string }
+  > = {
+    biomethanisation: {
+      label: lang === 'hi' ? 'बायोमेथेनेशन इकाई' : 'Biomethanisation Unit',
+      icon: Factory,
+      color: 'text-emerald-700',
+      bg: 'bg-emerald-100',
+      border: 'border-emerald-200',
+    },
+    'waste-to-energy': {
+      label: lang === 'hi' ? 'वेस्ट-टू-एनर्जी प्लांट' : 'Waste-to-Energy Plant',
+      icon: Zap,
+      color: 'text-amber-700',
+      bg: 'bg-amber-100',
+      border: 'border-amber-200',
+    },
+    recycling: {
+      label: lang === 'hi' ? 'पुनर्चक्रण केंद्र' : 'Recycling Hub',
+      icon: Recycle,
+      color: 'text-teal-700',
+      bg: 'bg-teal-100',
+      border: 'border-teal-200',
+    },
+    'scrap-collection': {
+      label: lang === 'hi' ? 'कबाड़ एवं सामग्री केंद्र' : 'Scrap & Material Recovery',
+      icon: Store,
+      color: 'text-purple-700',
+      bg: 'bg-purple-100',
+      border: 'border-purple-200',
+    },
+  };
 
   useEffect(() => {
     const raw = getFacilities();
@@ -131,22 +134,20 @@ export default function FacilitiesPage() {
           <div>
             <div className="inline-flex items-center gap-2 text-xs font-bold text-teal-700 bg-teal-100 px-3 py-1 rounded-full mb-2">
               <Compass size={14} />
-              <span>Smart GIS Network</span>
+              <span>{lang === 'hi' ? 'स्मार्ट GIS नेटवर्क' : 'Smart GIS Network'}</span>
             </div>
             <h1 className="text-3xl font-black text-gray-900 tracking-tight">
-              Waste Management & Bio-Energy Facilities
+              {t.facilitiesTitle}
             </h1>
             <p className="text-gray-600 text-sm mt-0.5">
-              {userLoc
-                ? 'Automated routing sorted by live proximity to your current location'
-                : 'Real-time directory of municipal recycling and energy generation plants'}
+              {t.facilitiesSubtitle}
             </p>
           </div>
 
           <div className="glass-card-3d rounded-2xl px-4 py-2.5 flex items-center gap-2.5 self-start border border-white">
             <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-ping" />
             <span className="text-xs font-black text-emerald-800">
-              {facilities.length} Verified Municipal Nodes
+              {facilities.length} {lang === 'hi' ? 'सत्यापित नगरपालिका केंद्र' : 'Verified Municipal Nodes'}
             </span>
           </div>
         </div>
@@ -156,9 +157,9 @@ export default function FacilitiesPage() {
           <div className="flex items-center justify-between border-b border-gray-200/80 pb-3">
             <div className="flex items-center gap-2 font-black text-sm text-gray-900">
               <Coins size={18} className="text-amber-600" />
-              <span>Daily Scrap Buyback Rates (Govt Approved Market Baseline)</span>
+              <span>{t.scrapRatesTitle}</span>
             </div>
-            <span className="text-[11px] font-bold text-gray-500">Updated Today 09:00 AM</span>
+            <span className="text-[11px] font-bold text-gray-500">{t.scrapRatesSubtitle}</span>
           </div>
 
           <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
@@ -175,7 +176,7 @@ export default function FacilitiesPage() {
                         : 'bg-gray-100 text-gray-700'
                     }`}
                   >
-                    {scrap.trend === 'up' ? '▲ Up' : scrap.trend === 'down' ? '▼ Down' : '● Fixed'}
+                    {scrap.trend === 'up' ? (lang === 'hi' ? '▲ वृद्धि' : '▲ Up') : scrap.trend === 'down' ? (lang === 'hi' ? '▼ कमी' : '▼ Down') : (lang === 'hi' ? '● स्थिर' : '● Fixed')}
                   </span>
                 </div>
                 <p className="text-xs font-bold text-gray-800 mt-2 truncate">{scrap.material}</p>
@@ -191,83 +192,76 @@ export default function FacilitiesPage() {
             <Search size={18} className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" />
             <input
               type="text"
-              placeholder="Search by facility name, city, or district (e.g. Hyderabad, Okhla, Koramangala)…"
+              placeholder={lang === 'hi' ? 'संयंत्र का नाम, शहर या जिला खोजें (उदा. Okhla, Koramangala)…' : 'Search by facility name, city, or district (e.g. Hyderabad, Okhla, Koramangala)…'}
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               className="w-full pl-12 pr-4 py-3.5 bg-white rounded-2xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-emerald-500 text-sm shadow-inner"
             />
           </div>
 
-          {/* Filter Pills */}
-          <div className="flex flex-wrap gap-2.5 pt-1">
-            {[
-              { key: 'all', label: 'All Plants' },
-              { key: 'biomethanisation', label: '🥬 Biomethanisation' },
-              { key: 'waste-to-energy', label: '⚡ Waste-to-Energy' },
-              { key: 'recycling', label: '📦 Recycling Hubs' },
-              { key: 'scrap-collection', label: '🔌 Scrap Recovery' },
-            ].map((f) => {
-              const active = selectedType === f.key;
-              return (
-                <button
-                  key={f.key}
-                  onClick={() => setSelectedType(f.key)}
-                  aria-pressed={active}
-                  className={`px-4 py-2 rounded-full text-xs font-bold transition-all ${
-                    active
-                      ? 'clay-btn-green text-white shadow-md scale-105'
-                      : 'bg-white/80 border border-gray-200 text-gray-700 hover:bg-white hover:border-emerald-300'
-                  }`}
-                >
-                  {f.label} ({typeCounts[f.key] ?? 0})
-                </button>
-              );
-            })}
+          <div className="flex items-center gap-2 overflow-x-auto pb-1 text-xs">
+            <button
+              onClick={() => setSelectedType('all')}
+              className={`px-4 py-2 rounded-full font-bold transition-all whitespace-nowrap ${
+                selectedType === 'all'
+                  ? 'clay-btn-green text-white shadow-sm'
+                  : 'bg-white/80 text-gray-700 border border-gray-200 hover:bg-gray-100'
+              }`}
+            >
+              {t.allFacilities} ({typeCounts.all ?? 0})
+            </button>
+            {Object.entries(TYPE_META).map(([typeKey, meta]) => (
+              <button
+                key={typeKey}
+                onClick={() => setSelectedType(typeKey)}
+                className={`px-4 py-2 rounded-full font-bold transition-all whitespace-nowrap flex items-center gap-1.5 ${
+                  selectedType === typeKey
+                    ? 'clay-btn-green text-white shadow-sm'
+                    : 'bg-white/80 text-gray-700 border border-gray-200 hover:bg-gray-100'
+                }`}
+              >
+                <meta.icon size={14} />
+                <span>{meta.label}</span> ({typeCounts[typeKey] ?? 0})
+              </button>
+            ))}
           </div>
         </div>
 
-        {/* ── Spatial Map Frame ── */}
-        <div className="clay-card-3d p-3 border-2 border-emerald-100 shadow-xl overflow-hidden">
-          <div className="h-[480px] rounded-2xl overflow-hidden">
-            <MapWithNoSSR facilities={filtered} />
-          </div>
+        {/* ── Interactive 3D Spatial GIS Map ── */}
+        <div className="clay-card-3d p-3 sm:p-4 bg-white border border-gray-200/80 overflow-hidden">
+          <MapWithNoSSR facilities={filtered} userLocation={userLoc} />
         </div>
 
-        {/* ── Live Tipper Vehicles GPS Fleet Status ── */}
+        {/* ── Live Tipper Telematics Fleet Status ── */}
         <div className="clay-card-3d p-6 space-y-4">
           <div className="flex items-center justify-between border-b border-gray-200/80 pb-3">
             <div className="flex items-center gap-2 font-black text-sm text-gray-900">
               <Truck size={18} className="text-emerald-700" />
-              <span>Active Municipal Electric Tipper Fleet (Live Telematics)</span>
+              <span>{t.liveFleetTitle}</span>
             </div>
-            <span className="text-[11px] font-bold text-emerald-800 bg-emerald-100 px-2 py-0.5 rounded-full">
-              3 Electric Tippers Online
+            <span className="text-[11px] font-bold text-emerald-800 bg-emerald-100 px-2.5 py-0.5 rounded-full">
+              ⚡ {SEED_TIPPERS.length} {lang === 'hi' ? 'सक्रिय वाहन' : 'Active Vehicles'}
             </span>
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
             {SEED_TIPPERS.map((tipper) => (
-              <div key={tipper.id} className="p-4 bg-white/80 rounded-2xl border border-gray-200/80 shadow-xs flex items-center justify-between">
-                <div className="space-y-1">
-                  <div className="flex items-center gap-2">
-                    <span className="font-mono font-black text-xs text-gray-900">{tipper.vehicleNumber}</span>
-                    <span
-                      className={`text-[9px] font-extrabold px-1.5 py-0.5 rounded-full uppercase ${
-                        tipper.status === 'en_route'
-                          ? 'bg-blue-100 text-blue-800'
-                          : tipper.status === 'collecting'
-                          ? 'bg-amber-100 text-amber-800'
-                          : 'bg-emerald-100 text-emerald-800'
-                      }`}
-                    >
-                      {tipper.status.replace('_', ' ')}
-                    </span>
-                  </div>
-                  <p className="text-[11px] text-gray-500">Driver: {tipper.driverName} • {tipper.assignedWard}</p>
+              <div key={tipper.id} className="p-4 rounded-2xl bg-white border border-emerald-200/90 space-y-2.5 shadow-sm">
+                <div className="flex items-center justify-between">
+                  <span className="font-mono font-black text-xs text-gray-900">{tipper.plateNumber}</span>
+                  <span className="text-[10px] font-extrabold uppercase px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800">
+                    {tipper.status}
+                  </span>
                 </div>
-                <div className="flex items-center gap-1 text-xs font-bold text-emerald-700 bg-emerald-50 px-2 py-1 rounded-xl">
-                  <BatteryCharging size={13} />
-                  <span>{tipper.batteryLevel}%</span>
+                <div className="flex items-center justify-between text-xs text-gray-600">
+                  <span>{lang === 'hi' ? 'चालक:' : 'Driver:'} <strong>{tipper.driverName}</strong></span>
+                  <span className="flex items-center gap-1 font-bold text-emerald-700">
+                    <BatteryCharging size={13} /> {tipper.batteryPercent}%
+                  </span>
+                </div>
+                <div className="text-[11px] text-gray-500 pt-1 border-t border-gray-100 flex items-center justify-between">
+                  <span>{lang === 'hi' ? 'वर्तमान वार्ड:' : 'Ward:'} {tipper.currentWard}</span>
+                  <span className="font-bold text-teal-800">{tipper.capacityKg} kg {lang === 'hi' ? 'क्षमता' : 'cap'}</span>
                 </div>
               </div>
             ))}
@@ -275,99 +269,90 @@ export default function FacilitiesPage() {
         </div>
 
         {/* ── Facility Cards Grid ── */}
-        {filtered.length === 0 ? (
-          <div className="clay-card-3d p-12 text-center text-gray-500 space-y-2">
-            <MapPin size={36} className="mx-auto text-gray-400 opacity-60" />
-            <p className="font-bold text-gray-800">No facilities match your search criteria.</p>
-            <p className="text-xs text-gray-500">Try adjusting your search keywords or category filters.</p>
-          </div>
-        ) : (
-          <div className="grid md:grid-cols-2 gap-6">
-            {filtered.map((f) => {
-              const meta = TYPE_META[f.type];
-              return (
-                <div
-                  key={f.id}
-                  className="clay-card-3d p-6 flex flex-col justify-between hover:border-emerald-300 transition-all duration-300 group"
-                >
-                  <div className="space-y-3">
-                    <div className="flex items-start justify-between gap-3">
-                      <div className="flex items-center gap-3">
-                        <div
-                          className={`w-12 h-12 rounded-2xl flex items-center justify-center flex-shrink-0 ${meta.bg} ${meta.color} border ${meta.border} shadow-sm group-hover:scale-105 transition-transform`}
-                        >
-                          <meta.icon size={22} />
-                        </div>
-                        <div>
-                          <h3 className="font-extrabold text-base text-gray-900 leading-snug">
-                            {f.name}
-                          </h3>
-                          <div className="flex items-center gap-2 mt-0.5">
-                            <span className="text-[11px] font-bold text-emerald-800 bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-200">
-                              {meta.label}
-                            </span>
-                            {f.capacityUtilization && (
-                              <span className="text-[10px] font-extrabold bg-blue-50 text-blue-800 px-2 py-0.5 rounded-full border border-blue-200">
-                                {f.capacityUtilization}% Capacity
-                              </span>
-                            )}
-                          </div>
-                        </div>
-                      </div>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+          {filtered.map((facility) => {
+            const meta = TYPE_META[facility.type] ?? TYPE_META.biomethanisation;
+            const Icon = meta.icon;
 
-                      {f.distanceKm !== undefined && (
-                        <div className="text-right flex-shrink-0">
-                          <span className="text-xs font-black text-emerald-700 bg-emerald-100/90 px-2.5 py-1 rounded-full border border-emerald-300 flex items-center gap-1">
-                            📍 {f.distanceKm.toFixed(1)} km
-                          </span>
-                        </div>
-                      )}
-                    </div>
-
-                    <p className="text-xs text-gray-600 leading-relaxed">{f.address}</p>
-
-                    <div className="pt-2 flex flex-wrap items-center gap-4 text-xs text-gray-500">
-                      {f.operatingHours && (
-                        <div className="flex items-center gap-1.5 font-medium">
-                          <Clock size={13} className="text-gray-400" />
-                          <span>{f.operatingHours}</span>
-                        </div>
-                      )}
-                      <a
-                        href={`tel:${f.contact.replace(/[\s-]/g, '')}`}
-                        className="flex items-center gap-1.5 font-bold text-emerald-700 hover:underline"
-                      >
-                        <Phone size={13} />
-                        <span>{f.contact}</span>
-                      </a>
-                    </div>
-                  </div>
-
-                  <div className="pt-5 mt-4 border-t border-gray-200/80 flex items-center justify-between">
-                    <span className="text-[11px] text-gray-400 font-semibold">
-                      GIS ID: SWA-PLANT-0{f.id}
+            return (
+              <div
+                key={facility.id}
+                className="clay-card-3d p-6 flex flex-col justify-between hover:border-emerald-300 transition-all duration-300 bg-white/80 group"
+              >
+                <div className="space-y-3">
+                  <div className="flex items-center justify-between">
+                    <span
+                      className={`text-[11px] font-black uppercase px-3 py-1 rounded-full border flex items-center gap-1.5 ${meta.bg} ${meta.color} ${meta.border}`}
+                    >
+                      <Icon size={13} />
+                      <span>{meta.label}</span>
                     </span>
 
-                    <a
-                      href={`https://www.google.com/maps/dir/?api=1&destination=${f.lat},${f.lng}`}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="clay-btn-green text-white text-xs font-extrabold px-4 py-2 flex items-center gap-1.5 shine-sweep-effect shadow-md"
-                      aria-label={`Get GPS directions to ${f.name}`}
-                    >
-                      <Navigation size={13} />
-                      <span>Get GPS Directions</span>
-                      <ArrowUpRight size={13} />
-                    </a>
+                    {facility.distanceKm !== undefined && (
+                      <span className="text-xs font-black text-emerald-800 bg-emerald-50 border border-emerald-200 px-2.5 py-0.5 rounded-full">
+                        {facility.distanceKm < 1
+                          ? `${(facility.distanceKm * 1000).toFixed(0)} m`
+                          : `${facility.distanceKm.toFixed(1)} km`}
+                      </span>
+                    )}
+                  </div>
+
+                  <div>
+                    <h3 className="text-base font-black text-gray-900 group-hover:text-emerald-800 transition-colors">
+                      {facility.name}
+                    </h3>
+                    <p className="text-xs text-gray-500 mt-1 flex items-start gap-1.5">
+                      <MapPin size={14} className="text-emerald-600 flex-shrink-0 mt-0.5" />
+                      <span>{facility.address}</span>
+                    </p>
+                  </div>
+
+                  <div className="p-3 bg-gray-50 rounded-2xl border border-gray-200/80 space-y-1.5 text-xs">
+                    <div className="flex items-center justify-between">
+                      <span className="text-gray-500">{t.plantCapacity}</span>
+                      <span className="font-bold text-gray-800">{facility.capacity}</span>
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <span className="text-gray-500">{t.operatingHours}</span>
+                      <span className="font-semibold text-gray-700">{facility.operatingHours}</span>
+                    </div>
+                  </div>
+
+                  <div className="flex flex-wrap gap-1.5 pt-1">
+                    {facility.acceptedWaste.map((w) => (
+                      <span
+                        key={w}
+                        className="text-[10px] font-bold bg-white border border-gray-200 text-gray-600 px-2 py-0.5 rounded-full capitalize"
+                      >
+                        {w.replace('_', ' ')}
+                      </span>
+                    ))}
                   </div>
                 </div>
-              );
-            })}
-          </div>
-        )}
+
+                <div className="pt-4 mt-4 border-t border-gray-100 flex items-center justify-between">
+                  <a
+                    href={`tel:${facility.contact}`}
+                    className="text-xs font-bold text-emerald-700 hover:underline flex items-center gap-1"
+                  >
+                    <Phone size={13} /> {facility.contact}
+                  </a>
+
+                  <a
+                    href={`https://www.google.com/maps/dir/?api=1&destination=${facility.lat},${facility.lng}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="clay-btn-green text-white text-xs font-bold px-3 py-1.5 flex items-center gap-1"
+                  >
+                    <span>{t.getDirections}</span>
+                    <ArrowUpRight size={13} />
+                  </a>
+                </div>
+              </div>
+            );
+          })}
+        </div>
       </div>
     </Layout>
   );
 }
-
-
